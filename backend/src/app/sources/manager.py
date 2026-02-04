@@ -2,7 +2,7 @@
 
 import asyncio
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable, Optional
 
 from app.logging_config import get_logger
 from app.sources.base import BaseConnector, SourceResult, SourceType
@@ -138,7 +138,7 @@ class SourceManager:
     async def search_all(
         self,
         criteria: SearchCriteria,
-        progress_callback: callable | None = None,
+        progress_callback: Optional[Callable] = None,
     ) -> list[SourceResult]:
         """Search all compatible sources in parallel.
 
@@ -205,7 +205,7 @@ class SourceManager:
     async def search_cascade(
         self,
         criteria: SearchCriteria,
-        progress_callback: callable | None = None,
+        progress_callback: Optional[Callable] = None,
     ) -> list[SourceResult]:
         """Search sources in priority order, stopping when target reached.
 
@@ -277,7 +277,7 @@ class SourceManager:
         source: BaseConnector,
         criteria: SearchCriteria,
         progress: SearchProgress,
-        progress_callback: callable | None = None,
+        progress_callback: Optional[Callable] = None,
         limit: int | None = None,
     ) -> list[SourceResult]:
         """Search a single source.
