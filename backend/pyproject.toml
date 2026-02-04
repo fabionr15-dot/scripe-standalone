@@ -13,7 +13,7 @@ dependencies = [
     "sqlalchemy>=2.0.25",
     "psycopg2-binary>=2.9.9",  # PostgreSQL driver
     # Data validation
-    "pydantic>=2.6.0",
+    "pydantic[email]>=2.6.0",  # includes email-validator
     "pydantic-settings>=2.1.0",
     # CLI
     "typer>=0.12.3",
