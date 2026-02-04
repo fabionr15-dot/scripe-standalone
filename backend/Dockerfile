@@ -15,10 +15,13 @@ RUN pip install --no-cache-dir .
 COPY src/ ./src/
 COPY allowlist_sources.yaml .
 
+# Set PYTHONPATH so 'from app.xxx' works
+ENV PYTHONPATH=/app/src
+
 # Create non-root user
 RUN useradd -m scripe && chown -R scripe:scripe /app
 USER scripe
 
 EXPOSE 8010
 
-CMD ["uvicorn", "src.app.api.main:app", "--host", "0.0.0.0", "--port", "8010"]
+CMD ["uvicorn", "app.api.main:app", "--host", "0.0.0.0", "--port", "8010"]
