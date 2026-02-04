@@ -1,0 +1,66 @@
+# Allowlist of permitted data sources
+# Only sources explicitly listed here with allowed=true will be used
+# Each source must document its legal basis and compliance notes
+
+sources:
+  google_places:
+    allowed: true
+    type: api
+    legal_basis: "Official API with Terms of Service - requires API key"
+    notes: "Respect rate limits and attribution requirements"
+    rate_limit_per_second: 10
+    requires_api_key: true
+
+  nominatim_osm:
+    allowed: true
+    type: api
+    legal_basis: "OpenStreetMap Nominatim - requires email and user agent"
+    notes: "Max 1 req/sec, must provide valid email per usage policy"
+    rate_limit_per_second: 1
+    requires_api_key: false
+
+  official_website_contact:
+    allowed: true
+    type: web_crawl
+    legal_basis: "Public contact pages - must respect robots.txt"
+    notes: "Only /contact, /contatti, /impressum, /legal pages. Max 5 pages per domain."
+    rate_limit_per_second: 0.5
+    requires_api_key: false
+    patterns:
+      - "/contact"
+      - "/contatti"
+      - "/chi-siamo"
+      - "/about"
+      - "/impressum"
+      - "/legal"
+
+  business_directories:
+    allowed: true
+    type: web_crawl
+    legal_basis: "Public business directories with compatible ToS"
+    notes: "Must verify each directory's ToS individually"
+    rate_limit_per_second: 0.5
+    requires_api_key: false
+    allowed_domains:
+      # Add only directories you've verified allow this use case
+      - "paginegialle.it"  # Verify ToS before use
+      - "example-directory.com"  # Placeholder
+
+# Explicitly blocked sources - never use these
+blocked_sources:
+  - name: "linkedin"
+    reason: "Scraping prohibited by ToS"
+  - name: "facebook"
+    reason: "Scraping prohibited by ToS"
+  - name: "instagram"
+    reason: "Scraping prohibited by ToS"
+  - name: "twitter"
+    reason: "API required, scraping prohibited"
+
+# Compliance notes
+compliance:
+  gdpr_basis: "Legitimate interest for B2B outreach - business data only"
+  data_minimization: "Collect only business contact info, no personal data"
+  purpose_limitation: "B2B lead generation only"
+  storage_limitation: "Retain only as long as necessary for business purpose"
+  user_rights: "Provide mechanism to remove records on request"
