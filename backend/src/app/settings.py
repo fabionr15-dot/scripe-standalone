@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     # API Keys
     google_places_api_key: str | None = None
     bing_maps_api_key: str | None = None
-    anthropic_api_key: str | None = None  # For AI query interpretation
+    openai_api_key: str | None = None  # For AI query interpretation
 
     # Proxy Configuration
     proxy_urls: list[str] = Field(default_factory=list)  # List of proxy URLs

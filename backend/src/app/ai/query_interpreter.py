@@ -352,13 +352,13 @@ class QueryInterpreter:
     Supports both rule-based parsing and AI-powered interpretation.
     """
 
-    def __init__(self, anthropic_api_key: str | None = None):
+    def __init__(self, openai_api_key: str | None = None):
         """Initialize query interpreter.
 
         Args:
-            anthropic_api_key: Optional Anthropic API key for AI interpretation
+            openai_api_key: Optional OpenAI API key for AI interpretation
         """
-        self.api_key = anthropic_api_key or getattr(settings, "anthropic_api_key", None)
+        self.api_key = openai_api_key or getattr(settings, "openai_api_key", None)
         self.logger = get_logger(__name__)
 
     async def interpret(self, query: str, use_ai: bool = True) -> InterpretedQuery:
@@ -490,7 +490,7 @@ class QueryInterpreter:
         return result
 
     async def _ai_interpret(self, query: str) -> InterpretedQuery:
-        """AI-powered query interpretation using Claude.
+        """AI-powered query interpretation using OpenAI GPT.
 
         Args:
             query: Search query
@@ -526,17 +526,17 @@ Important:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    "https://api.anthropic.com/v1/messages",
+                    "https://api.openai.com/v1/chat/completions",
                     headers={
-                        "x-api-key": self.api_key,
-                        "anthropic-version": "2023-06-01",
-                        "content-type": "application/json",
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
                     },
                     json={
-                        "model": "claude-3-haiku-20240307",
+                        "model": "gpt-4o-mini",
                         "max_tokens": 500,
-                        "system": system_prompt,
+                        "temperature": 0,
                         "messages": [
+                            {"role": "system", "content": system_prompt},
                             {"role": "user", "content": f"Interpret this search query: {query}"}
                         ],
                     },
@@ -545,8 +545,8 @@ Important:
                 response.raise_for_status()
                 data = response.json()
 
-                # Extract text content
-                content = data.get("content", [{}])[0].get("text", "{}")
+                # Extract text content from OpenAI response
+                content = data.get("choices", [{}])[0].get("message", {}).get("content", "{}")
 
                 # Parse JSON
                 parsed = json.loads(content)

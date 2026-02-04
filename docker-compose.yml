@@ -9,7 +9,7 @@ services:
       - ENV=development
       - DATABASE_URL=postgresql://scripe:scripe@db:5432/scripe
       - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - db
     volumes:
