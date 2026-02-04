@@ -11,6 +11,7 @@ dependencies = [
     "beautifulsoup4>=4.12.3",
     # Database
     "sqlalchemy>=2.0.25",
+    "psycopg2-binary>=2.9.9",  # PostgreSQL driver
     # Data validation
     "pydantic>=2.6.0",
     "pydantic-settings>=2.1.0",
