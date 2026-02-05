@@ -196,10 +196,6 @@ def estimate_search_cost(
         region=region,
     )
 
-    # Estimated results: show realistic available count (not capped by target_count)
-    # target_count is only used as the collection limit, not the estimate display
-    estimated_results = estimated_available
-
     # How many leads we'll actually collect (capped by what's available)
     leads_to_collect = min(target_count, estimated_available)
 
@@ -219,7 +215,7 @@ def estimate_search_cost(
     return {
         "target_count": target_count,
         "tier": tier.value,
-        "estimated_results": estimated_results,
+        "estimated_results": leads_to_collect,
         "estimated_available": estimated_available,
         "estimated_time_seconds": int(estimated_time),
         "estimated_time_display": _format_duration(int(estimated_time)),

@@ -12,6 +12,7 @@ import {
   CreditCard,
   Clock,
   ChevronRight,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
@@ -113,6 +114,7 @@ export function NewSearchPage() {
   const [estimate, setEstimate] = useState<SearchEstimate | null>(null);
   const [qualityTier, setQualityTier] = useState<QualityTier>('standard');
 
+  const [targetCount, setTargetCount] = useState(100);
   const [isInterpreting, setIsInterpreting] = useState(false);
   const [isEstimating, setIsEstimating] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -213,7 +215,7 @@ export function NewSearchPage() {
         country: criteria.country || 'IT',
         regions: allRegions,
         cities: criteria.city ? [criteria.city] : [],
-        target_count: 100,
+        target_count: targetCount,
         quality_tier: qualityTier,
       });
       // Map response to expected format
@@ -267,7 +269,7 @@ export function NewSearchPage() {
         regions: criteria.region ? [criteria.region] : undefined,
         cities: criteria.city ? [criteria.city] : undefined,
         keywords_exclude: criteria.keywords_exclude || undefined,
-        target_count: 100,
+        target_count: targetCount,
         quality_tier: qualityTier,
       });
 
@@ -478,6 +480,50 @@ export function NewSearchPage() {
             ))}
           </div>
         </div>
+
+        {/* Target Count Selection */}
+        {(interpretation || manualData.categories) && (
+          <div className="bg-white rounded-xl border p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium flex items-center gap-2">
+                <Users className="h-5 w-5 text-gray-600" />
+                Numero di lead
+              </h3>
+              <span className="text-2xl font-bold text-blue-600">
+                {targetCount.toLocaleString('it-IT')}
+              </span>
+            </div>
+            <input
+              type="range"
+              min={10}
+              max={1000}
+              step={10}
+              value={targetCount}
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                setTargetCount(val);
+              }}
+              onMouseUp={() => {
+                if (interpretation || manualData.categories) {
+                  handleEstimate(interpretation || undefined);
+                }
+              }}
+              onTouchEnd={() => {
+                if (interpretation || manualData.categories) {
+                  handleEstimate(interpretation || undefined);
+                }
+              }}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            />
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>10</span>
+              <span>250</span>
+              <span>500</span>
+              <span>750</span>
+              <span>1.000</span>
+            </div>
+          </div>
+        )}
 
         {/* Estimate & Create */}
         {estimate && (
