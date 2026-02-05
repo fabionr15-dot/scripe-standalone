@@ -64,6 +64,8 @@ class Company(Base):
     website: Mapped[str | None] = mapped_column(String(500), nullable=True, index=True)
     phone: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    alternative_phones: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON array: ["num1", "num2"]
+    sources_count: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
     # Address fields
     address_line: Mapped[str | None] = mapped_column(Text, nullable=True)

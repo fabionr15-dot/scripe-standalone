@@ -42,6 +42,7 @@ DEFAULT_COLUMNS = [
     "company_name",
     "website",
     "phone",
+    "alternative_phones",
     "email",
     "address_line",
     "postal_code",
@@ -429,10 +430,20 @@ def _export_pdf(search: Search, companies: list[Company], columns: list[str]) ->
 
 def _company_to_dict(company: Company, columns: list[str]) -> dict[str, Any]:
     """Convert company to dict with only specified columns."""
+    # Parse alternative phones from JSON
+    import json
+    alt_phones = []
+    if company.alternative_phones:
+        try:
+            alt_phones = json.loads(company.alternative_phones)
+        except (json.JSONDecodeError, TypeError):
+            pass
+
     all_data = {
         "company_name": company.company_name or "",
         "website": company.website or "",
         "phone": company.phone or "",
+        "alternative_phones": ", ".join(alt_phones) if alt_phones else "",
         "email": company.email or "",
         "address_line": company.address_line or "",
         "postal_code": company.postal_code or "",
@@ -448,6 +459,7 @@ def _company_to_dict(company: Company, columns: list[str]) -> dict[str, Any]:
         "phone_validated": company.phone_validated or False,
         "email_validated": company.email_validated or False,
         "website_validated": company.website_validated or False,
+        "sources_count": company.sources_count or 1,
     }
     return {col: all_data.get(col, "") for col in columns}
 

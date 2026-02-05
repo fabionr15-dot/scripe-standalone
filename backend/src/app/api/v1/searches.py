@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from app.auth.middleware import require_auth
 from app.auth.models import UserAccount, UserSearch
+from app.dedupe.deduper import CompanyDeduplicator
 from app.logging_config import get_logger
 from app.quality.enrichment import EnrichmentPipeline
 from app.quality.scorer import QualityScorer
@@ -608,6 +609,8 @@ async def get_search_companies(
                     "phone_validated": c.phone_validated,
                     "email_validated": c.email_validated,
                     "website_validated": c.website_validated,
+                    "alternative_phones": json.loads(c.alternative_phones) if c.alternative_phones else [],
+                    "sources_count": c.sources_count or 1,
                 }
                 for c in companies
             ],
@@ -615,6 +618,109 @@ async def get_search_companies(
 
 
 # ==================== BACKGROUND EXECUTION ====================
+
+
+def _deduplicate_and_collect_phones(
+    enriched_results: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Deduplicate results and collect alternative phone numbers.
+
+    When duplicates are found (same website domain, same phone, or same name+city),
+    they are merged into one entry. Alternative phone numbers from duplicates
+    are preserved in the 'alternative_phones' field.
+
+    Args:
+        enriched_results: List of dicts with 'result', 'quality', 'validations'
+
+    Returns:
+        Deduplicated list with alternative_phones and sources_count added
+    """
+    if not enriched_results:
+        return []
+
+    deduper = CompanyDeduplicator()
+
+    # Convert to flat dicts for deduper comparison
+    items = []
+    for item in enriched_results:
+        r = item["result"]
+        d = {
+            "company_name": r.company_name,
+            "phone": r.phone,
+            "email": getattr(r, "email", None),
+            "website": r.website,
+            "address_line": r.address_line,
+            "postal_code": r.postal_code,
+            "city": r.city,
+            "region": r.region,
+            "country": r.country,
+            "category": r.category,
+            "source_url": r.source_url,
+            "source_name": r.source_name,
+            # Keep references to quality/validations
+            "_quality": item["quality"],
+            "_validations": item.get("validations", {}),
+            "_all_phones": [r.phone] if r.phone else [],
+            "_sources_count": 1,
+        }
+        items.append(d)
+
+    # Deduplicate with phone collection
+    deduplicated = []
+    seen_indices: set[int] = set()
+
+    for i, company1 in enumerate(items):
+        if i in seen_indices:
+            continue
+
+        merged = company1.copy()
+        all_phones = list(merged["_all_phones"])
+
+        for j in range(i + 1, len(items)):
+            if j in seen_indices:
+                continue
+
+            company2 = items[j]
+
+            if deduper.are_duplicates(merged, company2):
+                # Collect phone from duplicate
+                if company2.get("phone") and company2["phone"] not in all_phones:
+                    all_phones.append(company2["phone"])
+
+                # Merge data (prefer non-null values)
+                for field in ["website", "email", "address_line", "postal_code",
+                              "city", "region", "country", "category", "source_url"]:
+                    if not merged.get(field) and company2.get(field):
+                        merged[field] = company2[field]
+
+                # Take better quality score
+                q1 = merged["_quality"]
+                q2 = company2["_quality"]
+                if q2.quality_score > q1.quality_score:
+                    merged["_quality"] = q2
+                    merged["_validations"] = company2["_validations"]
+
+                merged["_sources_count"] = merged.get("_sources_count", 1) + 1
+                seen_indices.add(j)
+
+        # Store all phones
+        merged["_all_phones"] = all_phones
+        # Primary phone is the first one; alternatives are the rest
+        if len(all_phones) > 1:
+            merged["_alternative_phones"] = all_phones[1:]  # Exclude primary
+        else:
+            merged["_alternative_phones"] = []
+
+        deduplicated.append(merged)
+
+    logger.info(
+        "deduplication_completed",
+        original=len(enriched_results),
+        deduplicated=len(deduplicated),
+        removed=len(enriched_results) - len(deduplicated),
+    )
+
+    return deduplicated
 
 
 async def _execute_search_run(
@@ -754,30 +860,36 @@ async def _execute_search_run(
                     "validations": {},
                 })
 
+        # --- DEDUPLICATION ---
+        deduplicated = _deduplicate_and_collect_phones(enriched_results)
+
         # Save results to database
         with db.session() as session:
-            for item in enriched_results:
-                result = item["result"]
-                quality = item["quality"]
-                validations = item.get("validations", {})
+            for item in deduplicated:
+                quality = item["_quality"]
+                validations = item.get("_validations", {})
+                alt_phones = item.get("_alternative_phones", [])
 
                 company = Company(
                     search_id=search_id,
-                    company_name=result.company_name,
-                    website=result.website,
-                    phone=result.phone,
-                    address_line=result.address_line,
-                    postal_code=result.postal_code,
-                    city=result.city,
-                    region=result.region,
-                    country=result.country,
-                    category=result.category,
-                    source_url=result.source_url,
+                    company_name=item["company_name"],
+                    website=item.get("website"),
+                    phone=item.get("phone"),
+                    email=item.get("email"),
+                    address_line=item.get("address_line"),
+                    postal_code=item.get("postal_code"),
+                    city=item.get("city"),
+                    region=item.get("region"),
+                    country=item.get("country"),
+                    category=item.get("category"),
+                    source_url=item.get("source_url"),
                     quality_score=int(quality.quality_score * 100),
                     confidence_score=quality.confidence_score,
                     phone_validated=validations.get("phone", None) and validations["phone"].is_valid,
                     email_validated=validations.get("email", None) and validations["email"].is_valid,
                     website_validated=validations.get("website", None) and validations["website"].is_valid,
+                    alternative_phones=json.dumps(alt_phones) if alt_phones else None,
+                    sources_count=item.get("_sources_count", 1),
                 )
                 session.add(company)
 
@@ -786,7 +898,7 @@ async def _execute_search_run(
             if run:
                 run.status = "completed"
                 run.progress_percent = 100
-                run.found_count = len(enriched_results)
+                run.found_count = len(deduplicated)
                 run.ended_at = datetime.utcnow()
 
             session.commit()
@@ -795,7 +907,9 @@ async def _execute_search_run(
             "search_run_completed",
             search_id=search_id,
             run_id=run_id,
-            results_count=len(results),
+            results_count=len(deduplicated),
+            raw_results=len(results),
+            duplicates_removed=len(enriched_results) - len(deduplicated),
         )
 
     except Exception as e:

@@ -37,6 +37,8 @@ interface Lead {
   phone_validated: boolean | null;
   email_validated: boolean | null;
   website_validated: boolean | null;
+  alternative_phones: string[];
+  sources_count: number;
 }
 
 interface RunStatus {
@@ -468,12 +470,32 @@ export function SearchResultsPage() {
                           )}
                           <div className="flex flex-wrap gap-3 mt-2 text-sm">
                             {lead.phone && (
+                              <div className="flex items-center gap-1">
+                                <a
+                                  href={`tel:${lead.phone}`}
+                                  className="flex items-center gap-1 text-gray-600 hover:text-blue-600"
+                                >
+                                  <Phone className="h-4 w-4" />
+                                  {lead.phone}
+                                </a>
+                                {lead.alternative_phones && lead.alternative_phones.length > 0 && (
+                                  <span
+                                    className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-medium cursor-help"
+                                    title={`Numeri alternativi:\n${lead.alternative_phones.join('\n')}`}
+                                  >
+                                    +{lead.alternative_phones.length}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            {/* Show alternative phones if no primary phone */}
+                            {!lead.phone && lead.alternative_phones && lead.alternative_phones.length > 0 && (
                               <a
-                                href={`tel:${lead.phone}`}
+                                href={`tel:${lead.alternative_phones[0]}`}
                                 className="flex items-center gap-1 text-gray-600 hover:text-blue-600"
                               >
                                 <Phone className="h-4 w-4" />
-                                {lead.phone}
+                                {lead.alternative_phones[0]}
                               </a>
                             )}
                             {lead.email && (
@@ -524,6 +546,9 @@ export function SearchResultsPage() {
                           </div>
                           {lead.phone_validated && (
                             <span className="text-[10px] text-green-600">Tel. verificato</span>
+                          )}
+                          {lead.sources_count > 1 && (
+                            <span className="text-[10px] text-blue-600">{lead.sources_count} fonti</span>
                           )}
                         </div>
                       </div>
