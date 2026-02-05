@@ -169,7 +169,7 @@ class GoogleSerpScraper(BaseConnector):
             }
 
             async with httpx.AsyncClient(
-                proxies={"all://": proxy} if proxy else None,
+                proxy=proxy,
                 timeout=self.config.timeout_seconds,
             ) as client:
                 response = await client.get(url, headers=headers)
@@ -367,7 +367,7 @@ class GoogleSerpScraper(BaseConnector):
                 proxy = await self.proxy_manager.get_proxy()
 
             async with httpx.AsyncClient(
-                proxies={"all://": proxy} if proxy else None,
+                proxy=proxy,
                 timeout=10,
             ) as client:
                 response = await client.get(

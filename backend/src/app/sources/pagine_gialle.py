@@ -149,7 +149,7 @@ class PagineGialleScraper(BaseConnector):
             }
 
             async with httpx.AsyncClient(
-                proxies={"all://": proxy} if proxy else None,
+                proxy=proxy,
                 timeout=self.config.timeout_seconds,
                 follow_redirects=True,
             ) as client:
@@ -354,7 +354,7 @@ class PagineGialleScraper(BaseConnector):
                 proxy = await self.proxy_manager.get_proxy()
 
             async with httpx.AsyncClient(
-                proxies={"all://": proxy} if proxy else None,
+                proxy=proxy,
                 timeout=10,
             ) as client:
                 response = await client.get(

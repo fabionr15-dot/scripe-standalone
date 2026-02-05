@@ -1,4 +1,4 @@
-"""Google Places API connector."""
+"""Google Places API (New) connector."""
 
 from typing import Any
 
@@ -12,13 +12,13 @@ logger = get_logger(__name__)
 
 
 class PlacesConnector(BaseConnector):
-    """Google Places API connector for business data.
+    """Google Places API (New) connector for business data.
 
-    Note: Requires Google Places API key and respects API ToS.
-    See: https://developers.google.com/maps/documentation/places/web-service/usage-and-billing
+    Uses the new Places API with searchText endpoint.
+    See: https://developers.google.com/maps/documentation/places/web-service/text-search
     """
 
-    API_BASE_URL = "https://maps.googleapis.com/maps/api/place"
+    API_BASE_URL = "https://places.googleapis.com/v1/places"
 
     # Source configuration
     config = SourceConfig(
@@ -31,7 +31,7 @@ class PlacesConnector(BaseConnector):
         supported_countries=["*"],  # Global coverage
         enabled=True,
         confidence_score=0.9,  # High confidence - official source
-        max_results_per_query=60,  # API returns max 60 with pagination
+        max_results_per_query=60,  # API returns max 20 per request, paginated
         timeout_seconds=30,
         retry_count=3,
         requires_proxy=False,
@@ -57,13 +57,13 @@ class PlacesConnector(BaseConnector):
         limit: int = 100,
         **kwargs: Any,
     ) -> list[SourceResult]:
-        """Search for businesses using Places API Text Search.
+        """Search for businesses using Places API (New) Text Search.
 
         Args:
             query: Search query (e.g., "dentist", "restaurant")
             region: Geographic region (city, region)
             limit: Maximum results
-            **kwargs: Additional parameters (language, radius, etc.)
+            **kwargs: Additional parameters (language, etc.)
 
         Returns:
             List of source results
@@ -79,40 +79,57 @@ class PlacesConnector(BaseConnector):
 
         try:
             async with httpx.AsyncClient() as client:
-                # Places API Text Search endpoint
-                url = f"{self.API_BASE_URL}/textsearch/json"
-                params = {
-                    "query": full_query,
-                    "key": self.api_key,
-                    "language": kwargs.get("language", "it"),
+                # Places API (New) Text Search endpoint
+                url = f"{self.API_BASE_URL}:searchText"
+
+                headers = {
+                    "Content-Type": "application/json",
+                    "X-Goog-Api-Key": self.api_key,
+                    "X-Goog-FieldMask": (
+                        "places.displayName,places.formattedAddress,"
+                        "places.internationalPhoneNumber,places.websiteUri,"
+                        "places.types,places.addressComponents,places.id,"
+                        "places.location,nextPageToken"
+                    ),
                 }
 
-                # Add optional location bias
-                if "location" in kwargs and "radius" in kwargs:
-                    params["location"] = kwargs["location"]
-                    params["radius"] = kwargs["radius"]
+                language = kwargs.get("language", "it")
 
-                response = await client.get(url, params=params, timeout=30.0)
+                body = {
+                    "textQuery": full_query,
+                    "languageCode": language,
+                    "maxResultCount": min(limit, 20),  # API max is 20 per request
+                }
+
+                # First page
+                response = await client.post(url, json=body, headers=headers, timeout=30.0)
                 response.raise_for_status()
                 data = response.json()
 
-                if data.get("status") != "OK":
-                    logger.warning(
-                        "places_api_error",
-                        status=data.get("status"),
-                        error_message=data.get("error_message"),
-                    )
-                    return []
-
                 # Parse results
-                places = data.get("results", [])
-                for place in places[:limit]:
+                places = data.get("places", [])
+                for place in places:
                     result = self._parse_place(place)
                     if result:
                         results.append(result)
 
-                # Handle pagination if needed (next_page_token)
-                # Note: Implementing pagination requires managing rate limits and delays
+                # Handle pagination with nextPageToken
+                page_token = data.get("nextPageToken")
+                while page_token and len(results) < limit:
+                    body["pageToken"] = page_token
+                    body.pop("textQuery", None)  # Not needed with pageToken
+
+                    response = await client.post(url, json=body, headers=headers, timeout=30.0)
+                    response.raise_for_status()
+                    data = response.json()
+
+                    places = data.get("places", [])
+                    for place in places:
+                        result = self._parse_place(place)
+                        if result:
+                            results.append(result)
+
+                    page_token = data.get("nextPageToken")
 
                 self.log_search(full_query, len(results))
 
@@ -121,7 +138,7 @@ class PlacesConnector(BaseConnector):
         except Exception as e:
             self.log_error("search", e)
 
-        return results
+        return results[:limit]
 
     async def enrich(self, company_data: dict[str, Any]) -> SourceResult | None:
         """Enrich company data using Places Details API.
@@ -137,28 +154,23 @@ class PlacesConnector(BaseConnector):
 
         place_id = company_data.get("place_id")
         if not place_id:
-            # Could implement Find Place to get place_id first
             logger.debug("places_enrich_no_place_id")
             return None
 
         try:
             async with httpx.AsyncClient() as client:
-                url = f"{self.API_BASE_URL}/details/json"
-                params = {
-                    "place_id": place_id,
-                    "key": self.api_key,
-                    "fields": "name,formatted_address,formatted_phone_number,website,types,geometry",
+                url = f"{self.API_BASE_URL}/{place_id}"
+                headers = {
+                    "X-Goog-Api-Key": self.api_key,
+                    "X-Goog-FieldMask": (
+                        "displayName,formattedAddress,internationalPhoneNumber,"
+                        "websiteUri,types,addressComponents,id,location"
+                    ),
                 }
 
-                response = await client.get(url, params=params, timeout=30.0)
+                response = await client.get(url, headers=headers, timeout=30.0)
                 response.raise_for_status()
-                data = response.json()
-
-                if data.get("status") != "OK":
-                    logger.warning("places_details_error", status=data.get("status"))
-                    return None
-
-                place = data.get("result", {})
+                place = response.json()
                 return self._parse_place(place)
 
         except Exception as e:
@@ -166,7 +178,7 @@ class PlacesConnector(BaseConnector):
             return None
 
     def _parse_place(self, place: dict[str, Any]) -> SourceResult | None:
-        """Parse a place result from Places API.
+        """Parse a place result from Places API (New).
 
         Args:
             place: Place data from API
@@ -174,39 +186,41 @@ class PlacesConnector(BaseConnector):
         Returns:
             Source result or None
         """
-        name = place.get("name")
+        # Get display name
+        display_name = place.get("displayName", {})
+        name = display_name.get("text") if isinstance(display_name, dict) else display_name
         if not name:
             return None
 
-        # Extract address components
-        address = place.get("formatted_address", "")
-        website = place.get("website")
-        phone = place.get("formatted_phone_number") or place.get("international_phone_number")
+        # Extract fields
+        address = place.get("formattedAddress", "")
+        website = place.get("websiteUri")
+        phone = place.get("internationalPhoneNumber")
 
-        # Parse address (simplified - could be more sophisticated)
+        # Parse address components
         city = None
         region = None
         postal_code = None
         country = None
 
-        address_components = place.get("address_components", [])
+        address_components = place.get("addressComponents", [])
         for component in address_components:
             types = component.get("types", [])
             if "locality" in types:
-                city = component.get("long_name")
+                city = component.get("longText")
             elif "administrative_area_level_1" in types:
-                region = component.get("long_name")
+                region = component.get("longText")
             elif "postal_code" in types:
-                postal_code = component.get("long_name")
+                postal_code = component.get("longText")
             elif "country" in types:
-                country = component.get("short_name")
+                country = component.get("shortText")
 
         # Category from types
         types = place.get("types", [])
         category = types[0] if types else None
 
         # Source URL
-        place_id = place.get("place_id")
+        place_id = place.get("id")
         source_url = (
             f"https://www.google.com/maps/place/?q=place_id:{place_id}" if place_id else None
         )
@@ -227,7 +241,7 @@ class PlacesConnector(BaseConnector):
         )
 
     async def health_check(self) -> bool:
-        """Check if Google Places API is accessible.
+        """Check if Google Places API (New) is accessible.
 
         Returns:
             True if API is healthy and accessible
@@ -237,24 +251,33 @@ class PlacesConnector(BaseConnector):
 
         try:
             async with httpx.AsyncClient() as client:
-                # Simple test query
-                url = f"{self.API_BASE_URL}/textsearch/json"
-                params = {
-                    "query": "test",
-                    "key": self.api_key,
+                url = f"{self.API_BASE_URL}:searchText"
+                headers = {
+                    "Content-Type": "application/json",
+                    "X-Goog-Api-Key": self.api_key,
+                    "X-Goog-FieldMask": "places.displayName",
                 }
-                response = await client.get(
+                body = {
+                    "textQuery": "test",
+                    "maxResultCount": 1,
+                }
+
+                response = await client.post(
                     url,
-                    params=params,
+                    json=body,
+                    headers=headers,
                     timeout=self.config.timeout_seconds,
                 )
-                data = response.json()
-                # OK or ZERO_RESULTS both mean API is working
-                is_healthy = data.get("status") in ["OK", "ZERO_RESULTS"]
+
+                # 200 means API is working (even with empty results)
+                is_healthy = response.status_code == 200
                 if is_healthy:
                     self.mark_healthy()
                 else:
-                    self.mark_unhealthy(f"API status: {data.get('status')}")
+                    error_data = response.json() if response.content else {}
+                    self.mark_unhealthy(
+                        f"API status: {response.status_code} - {error_data.get('error', {}).get('message', 'Unknown')}"
+                    )
                 return is_healthy
         except Exception as e:
             self.mark_unhealthy(str(e))

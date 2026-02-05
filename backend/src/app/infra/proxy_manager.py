@@ -263,7 +263,7 @@ class ProxyManager:
         try:
             start = time.time()
             async with httpx.AsyncClient(
-                proxies={"all://": proxy_url},
+                proxy=proxy_url,
                 timeout=self.config.health_check_timeout,
             ) as client:
                 # Try each health check URL
