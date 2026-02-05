@@ -183,7 +183,7 @@ export function NewSearchPage() {
     }
   }
 
-  async function handleEstimate(interpreted?: InterpretedQuery) {
+  async function handleEstimate(interpreted?: InterpretedQuery, overrideTier?: QualityTier) {
     setIsEstimating(true);
 
     try {
@@ -210,13 +210,16 @@ export function NewSearchPage() {
         allRegions.push(criteria.region);
       }
 
+      // Use overrideTier if provided (for when tier changes but state hasn't updated yet)
+      const tierToUse = overrideTier || qualityTier;
+
       const res = await api.post('/ai/estimate', {
         query: criteria.categories?.join(' ') || '',
         country: criteria.country || 'IT',
         regions: allRegions,
         cities: criteria.city ? [criteria.city] : [],
         target_count: targetCount,
-        quality_tier: qualityTier,
+        quality_tier: tierToUse,
       });
       // Map response to expected format
       setEstimate({
@@ -463,9 +466,10 @@ export function NewSearchPage() {
               <button
                 key={tier.id}
                 onClick={() => {
-                  setQualityTier(tier.id as QualityTier);
+                  const newTier = tier.id as QualityTier;
+                  setQualityTier(newTier);
                   if (interpretation || manualData.categories) {
-                    handleEstimate(interpretation || undefined);
+                    handleEstimate(interpretation || undefined, newTier);
                   }
                 }}
                 className={`p-4 rounded-lg border-2 text-left transition-all ${
