@@ -76,7 +76,7 @@ TIER_CONFIG: dict[QualityTier, TierConfig] = {
         validate_website=False,
         enrich_from_website=False,
         time_multiplier=1.0,
-        cost_per_lead=0.02,
+        cost_per_lead=0.05,
         display_name="Basic",
         description="Dati base con validazione formato. Ideale per campagne di volume.",
     ),
@@ -94,9 +94,9 @@ TIER_CONFIG: dict[QualityTier, TierConfig] = {
         validate_website=True,
         enrich_from_website=True,
         time_multiplier=2.0,
-        cost_per_lead=0.05,
+        cost_per_lead=0.12,
         display_name="Standard",
-        description="Dati verificati con arricchimento. Buon equilibrio qualità/costo.",
+        description="Dati verificati con controllo telefono e sito web. Qualità garantita.",
     ),
     QualityTier.PREMIUM: TierConfig(
         tier=QualityTier.PREMIUM,
@@ -112,9 +112,9 @@ TIER_CONFIG: dict[QualityTier, TierConfig] = {
         validate_website=True,
         enrich_from_website=True,
         time_multiplier=4.0,
-        cost_per_lead=0.10,
+        cost_per_lead=0.25,
         display_name="Premium",
-        description="Dati completamente validati. Massima qualità per campagne mirate.",
+        description="Dati completamente verificati con analisi sito web. Massima qualità.",
     ),
 }
 

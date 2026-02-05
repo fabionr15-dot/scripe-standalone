@@ -34,6 +34,9 @@ interface Lead {
   category: string | null;
   quality_score: number;
   confidence_score: number;
+  phone_validated: boolean | null;
+  email_validated: boolean | null;
+  website_validated: boolean | null;
 }
 
 interface RunStatus {
@@ -76,6 +79,8 @@ const SOURCE_NAMES: Record<string, string> = {
   pagine_gialle: 'Pagine Gialle',
   official_website: 'Siti Web',
   bing_places: 'Bing Places',
+  validation: 'Validazione dati',
+  enrichment: 'Arricchimento dati',
 };
 
 // Animated dots for loading text
@@ -226,7 +231,7 @@ export function SearchResultsPage() {
     return `${mins}m ${secs}s`;
   }
 
-  const filteredLeads = leads.filter((l) => (l.quality_score || 0) * 100 >= minQuality);
+  const filteredLeads = leads.filter((l) => (l.quality_score || 0) >= minQuality);
   const isRunning = search?.status === 'running' || runStatus?.is_active;
   const isCompleted = search?.status === 'completed' && !runStatus?.is_active;
   const isFailed = search?.status === 'failed';
@@ -506,17 +511,20 @@ export function SearchResultsPage() {
                           <div className="flex items-center gap-1">
                             <Star
                               className={`h-4 w-4 ${
-                                (lead.quality_score || 0) >= 0.8
+                                (lead.quality_score || 0) >= 80
                                   ? 'text-yellow-500 fill-yellow-500'
-                                  : (lead.quality_score || 0) >= 0.6
+                                  : (lead.quality_score || 0) >= 60
                                   ? 'text-yellow-500'
                                   : 'text-gray-300'
                               }`}
                             />
                             <span className="font-medium">
-                              {Math.round((lead.confidence_score || 0) * 100)}%
+                              {lead.quality_score || 0}%
                             </span>
                           </div>
+                          {lead.phone_validated && (
+                            <span className="text-[10px] text-green-600">Tel. verificato</span>
+                          )}
                         </div>
                       </div>
                     </div>

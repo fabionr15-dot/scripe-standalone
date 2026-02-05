@@ -132,22 +132,22 @@ export function NewSearchPage() {
     {
       id: 'basic',
       name: 'Basic 40%',
-      description: 'Verifica formato, 2 fonti',
+      description: 'Solo dati grezzi, verifica formato',
       costMultiplier: 1,
       color: 'gray',
     },
     {
       id: 'standard',
       name: 'Standard 60%',
-      description: 'Verifica MX, enrichment sito, 4 fonti',
-      costMultiplier: 2,
+      description: 'Controllo telefono e sito web, 4 fonti',
+      costMultiplier: 2.4,
       color: 'blue',
     },
     {
       id: 'premium',
       name: 'Premium 80%',
-      description: 'Verifica carrier, SMTP, tutte le fonti',
-      costMultiplier: 4,
+      description: 'Analisi completa sito web, verifica profonda',
+      costMultiplier: 5,
       color: 'purple',
     },
   ];

@@ -13,6 +13,9 @@ from pydantic import BaseModel, Field
 from app.auth.middleware import require_auth
 from app.auth.models import UserAccount, UserSearch
 from app.logging_config import get_logger
+from app.quality.enrichment import EnrichmentPipeline
+from app.quality.scorer import QualityScorer
+from app.quality.validators import DataValidator
 from app.sources.manager import SearchCriteria, SearchProgress, get_source_manager
 from app.storage.db import db
 from app.storage.models import Company, Run, Search
@@ -118,25 +121,25 @@ QUALITY_TIER_CONFIG = {
         "validate_email": False,
         "enrich_website": False,
         "time_multiplier": 1.0,
-        "cost_per_lead": 0.02,
+        "cost_per_lead": 0.05,
     },
     QualityTier.STANDARD: {
         "min_score": 0.6,
         "max_sources": 4,
-        "validate_phone": False,
+        "validate_phone": True,  # Format + carrier check
         "validate_email": True,  # MX check
-        "enrich_website": True,
+        "enrich_website": False,
         "time_multiplier": 2.0,
-        "cost_per_lead": 0.05,
+        "cost_per_lead": 0.12,
     },
     QualityTier.PREMIUM: {
         "min_score": 0.8,
         "max_sources": None,  # All sources
         "validate_phone": True,  # Carrier check
         "validate_email": True,  # SMTP check
-        "enrich_website": True,
+        "enrich_website": True,  # Website crawling + analysis
         "time_multiplier": 4.0,
-        "cost_per_lead": 0.10,
+        "cost_per_lead": 0.25,
     },
 }
 
@@ -671,9 +674,93 @@ async def _execute_search_run(
             progress_callback=progress_callback,
         )
 
+        # Get quality tier for this search
+        quality_tier = QualityTier(criteria.get("quality_tier", "standard"))
+        tier_config = QUALITY_TIER_CONFIG.get(quality_tier, {})
+
+        # --- ENRICHMENT & VALIDATION PIPELINE ---
+        if run_id in _active_runs:
+            _active_runs[run_id].update({
+                "current_source": "validation",
+                "progress_percent": 80,
+            })
+
+        validator = DataValidator(default_country=criteria.get("country", "IT"))
+        scorer = QualityScorer()
+
+        # Determine validation level
+        if tier_config.get("enrich_website"):
+            validation_level = "premium"
+        elif tier_config.get("validate_phone") or tier_config.get("validate_email"):
+            validation_level = "standard"
+        else:
+            validation_level = "basic"
+
+        enriched_results = []
+        total_results = len(results)
+
+        for idx, result in enumerate(results):
+            try:
+                # Build data dict for validation
+                lead_data = {
+                    "company_name": result.company_name,
+                    "phone": result.phone,
+                    "email": getattr(result, "email", None),
+                    "website": result.website,
+                    "address_line": result.address_line,
+                    "city": result.city,
+                    "region": result.region,
+                    "country": result.country,
+                    "category": result.category,
+                    "source": result.source_name,
+                }
+
+                # Run validation based on tier
+                validations = await validator.validate_all(lead_data, validation_level)
+
+                # Build validation results dict for scorer
+                validation_results = {
+                    k: v.is_valid for k, v in validations.items()
+                }
+
+                # Calculate quality score
+                quality = scorer.score(
+                    lead_data,
+                    search_criteria=criteria,
+                    source_confidence=0.7,
+                    validation_results=validation_results,
+                )
+
+                enriched_results.append({
+                    "result": result,
+                    "quality": quality,
+                    "validations": validations,
+                })
+
+                # Update progress during validation
+                if run_id in _active_runs and idx % 5 == 0:
+                    validation_progress = 80 + int((idx / max(total_results, 1)) * 20)
+                    _active_runs[run_id].update({
+                        "progress_percent": min(validation_progress, 99),
+                        "current_source": "validation",
+                    })
+
+            except Exception as e:
+                logger.debug("validation_error", company=result.company_name, error=str(e))
+                # Still include with base score on validation error
+                enriched_results.append({
+                    "result": result,
+                    "quality": scorer.score(lead_data, source_confidence=0.5),
+                    "validations": {},
+                })
+
         # Save results to database
         with db.session() as session:
-            for result in results:
+            for item in enriched_results:
+                result = item["result"]
+                quality = item["quality"]
+                validations = item.get("validations", {})
+
                 company = Company(
                     search_id=search_id,
                     company_name=result.company_name,
@@ -686,7 +773,11 @@ async def _execute_search_run(
                     country=result.country,
                     category=result.category,
                     source_url=result.source_url,
-                    confidence_score=0.7,  # Base confidence from source
+                    quality_score=int(quality.quality_score * 100),
+                    confidence_score=quality.confidence_score,
+                    phone_validated=validations.get("phone", None) and validations["phone"].is_valid,
+                    email_validated=validations.get("email", None) and validations["email"].is_valid,
+                    website_validated=validations.get("website", None) and validations["website"].is_valid,
                 )
                 session.add(company)
 
@@ -695,7 +786,7 @@ async def _execute_search_run(
             if run:
                 run.status = "completed"
                 run.progress_percent = 100
-                run.found_count = len(results)
+                run.found_count = len(enriched_results)
                 run.ended_at = datetime.utcnow()
 
             session.commit()
