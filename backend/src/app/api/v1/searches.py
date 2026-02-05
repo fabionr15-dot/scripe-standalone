@@ -6,10 +6,11 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from app.api.rate_limit import limiter
 from app.auth.middleware import require_auth
 from app.auth.models import UserAccount, UserSearch
 from app.dedupe.deduper import CompanyDeduplicator
@@ -251,7 +252,8 @@ async def estimate_search(search_data: SearchCreateV1):
 
 
 @router.post("", response_model=SearchResponse)
-async def create_search(search_data: SearchCreateV1, user: UserAccount = Depends(require_auth)):
+@limiter.limit("20/minute")
+async def create_search(request: Request, search_data: SearchCreateV1, user: UserAccount = Depends(require_auth)):
     """Create a new search.
 
     Creates the search record but does not start execution.

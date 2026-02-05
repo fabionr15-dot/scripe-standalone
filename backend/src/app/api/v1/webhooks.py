@@ -8,6 +8,9 @@ logger = get_logger(__name__)
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
+# Track processed webhook events to prevent duplicate credit allocation
+_processed_events: set[str] = set()
+
 
 @router.post("/stripe")
 async def stripe_webhook(request: Request):
@@ -39,11 +42,20 @@ async def stripe_webhook(request: Request):
             detail=str(e),
         )
 
-    # Handle the event
+    # Handle the event — with idempotency check
+    event_id = event.get("id", "")
     if event["type"] == "checkout.session.completed":
+        if event_id in _processed_events:
+            logger.info("stripe_webhook_duplicate", event_id=event_id)
+            return {"received": True, "duplicate": True}
+
         session = event["data"]["object"]
         try:
             handle_checkout_completed(session)
+            _processed_events.add(event_id)
+            # Keep set bounded (last 10k events)
+            if len(_processed_events) > 10000:
+                _processed_events.clear()
             logger.info("stripe_checkout_completed", session_id=session["id"])
         except Exception as e:
             logger.error("stripe_checkout_error", error=str(e), session_id=session["id"])

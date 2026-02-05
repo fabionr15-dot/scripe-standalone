@@ -42,13 +42,13 @@ async def get_current_user(
 
     token = credentials.credentials
 
-    # Determine auth method based on client type
+    # Always use local JWT validation
+    # Zitadel OIDC is not implemented — reject "internal" client type to prevent auth bypass
     if x_client_type == "internal":
-        # Zitadel OIDC token - validate with Zitadel
-        user = await _validate_zitadel_token(token)
-    else:
-        # Local JWT token
-        user = auth_service.get_user_from_token(token)
+        logger.warning("zitadel_auth_rejected", reason="not_implemented")
+        return None
+
+    user = auth_service.get_user_from_token(token)
 
     if user:
         # Store user in request state for later use

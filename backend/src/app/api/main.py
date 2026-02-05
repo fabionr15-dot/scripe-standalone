@@ -66,12 +66,8 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # CORS middleware - restrict origins in production
-    allowed_origins = (
-        settings.allowed_origins.split(",")
-        if is_production
-        else ["*"]
-    )
+    # CORS middleware - always use explicit origins (never wildcard)
+    allowed_origins = settings.allowed_origins.split(",")
 
     app.add_middleware(
         CORSMiddleware,
@@ -88,7 +84,7 @@ def create_app() -> FastAPI:
     async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
         return JSONResponse(
             status_code=429,
-            content={"detail": "Troppe richieste. Riprova tra poco."},
+            content={"detail": "Too many requests. Please try again later."},
         )
 
     # Include v1 API routers

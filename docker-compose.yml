@@ -33,8 +33,7 @@ services:
       - POSTGRES_DB=scripe
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # Port intentionally NOT exposed externally — access only via Docker network
 
 volumes:
   postgres_data:

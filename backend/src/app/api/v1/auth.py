@@ -461,8 +461,10 @@ async def purchase_credits(
 
     try:
         if not _settings.stripe_secret_key:
-            # Fallback: test mode (development only)
-            if _settings.env == "development":
+            # Fallback: test mode (development only, localhost only)
+            client_ip = request.client.host if request.client else ""
+            is_localhost = client_ip in ("127.0.0.1", "::1", "localhost")
+            if _settings.env == "development" and is_localhost:
                 transaction = credit_service.purchase_credits(
                     user_id=user.id,
                     package_id=body.package_id,
@@ -474,7 +476,7 @@ async def purchase_credits(
                     "credits_added": transaction.amount,
                     "new_balance": transaction.balance_after,
                 }
-            raise ValueError("Pagamenti non configurati")
+            raise ValueError("Payment system not configured")
 
         from app.payments.stripe_service import create_checkout_session
 

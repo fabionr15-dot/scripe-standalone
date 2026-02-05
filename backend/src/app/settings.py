@@ -1,7 +1,11 @@
 """Application settings and configuration."""
 
+import sys
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_INSECURE_JWT_DEFAULTS = {"change-me-in-production", "secret", "your_jwt_secret_key_here_at_least_32_characters"}
 
 
 class Settings(BaseSettings):
@@ -73,3 +77,13 @@ class Settings(BaseSettings):
 
 # Global settings instance
 settings = Settings()
+
+# ── Security validation ──────────────────────────────────────────────
+if settings.env == "production":
+    if settings.jwt_secret_key in _INSECURE_JWT_DEFAULTS or len(settings.jwt_secret_key) < 32:
+        print(
+            "\n❌  FATAL: JWT_SECRET_KEY is insecure or too short (min 32 chars).\n"
+            "   Set a strong random value:  openssl rand -hex 32\n",
+            file=sys.stderr,
+        )
+        sys.exit(1)

@@ -1,6 +1,5 @@
 """Local authentication service (email/password)."""
 
-import secrets
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -18,9 +17,9 @@ logger = get_logger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT settings
-JWT_SECRET_KEY = getattr(settings, "jwt_secret_key", secrets.token_urlsafe(32))
+JWT_SECRET_KEY = settings.jwt_secret_key
 JWT_ALGORITHM = "HS256"
-JWT_EXPIRE_HOURS = 24
+JWT_EXPIRE_HOURS = 2  # Reduced from 24h for security
 
 
 class LocalAuthService:

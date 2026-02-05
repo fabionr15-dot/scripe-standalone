@@ -192,7 +192,7 @@ class User(BaseModel):
 class UserCreate(BaseModel):
     """User creation request."""
     email: EmailStr
-    password: str = Field(..., min_length=8)
+    password: str = Field(..., min_length=10, max_length=128)
     name: str | None = None
 
 

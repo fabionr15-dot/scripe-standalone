@@ -6,10 +6,11 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from app.api.rate_limit import limiter
 from app.auth.middleware import require_auth
 from app.auth.models import UserAccount, UserSearch
 from app.logging_config import get_logger
@@ -66,7 +67,9 @@ VALIDATION_COLUMNS = [
 
 
 @router.post("/{search_id}/export")
+@limiter.limit("10/minute")
 async def export_search(
+    request: Request,
     search_id: int,
     options: ExportOptions | None = None,
     user: UserAccount = Depends(require_auth),
@@ -200,7 +203,7 @@ def _export_excel(search: Search, companies: list[Company], columns: list[str]) 
     except ImportError:
         raise HTTPException(
             status_code=500,
-            detail="Excel export requires openpyxl. Install with: pip install openpyxl",
+            detail="Excel export is temporarily unavailable.",
         )
 
     wb = Workbook()

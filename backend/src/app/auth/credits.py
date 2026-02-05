@@ -159,9 +159,10 @@ class CreditService:
             raise ValueError("Amount must be positive")
 
         with db.session() as session:
+            # SELECT FOR UPDATE to prevent race conditions on concurrent credit deductions
             user = session.query(UserAccount).filter(
                 UserAccount.id == user_id
-            ).first()
+            ).with_for_update().first()
 
             if not user:
                 raise ValueError(f"User {user_id} not found")
@@ -169,7 +170,7 @@ class CreditService:
             if user.credits_balance < amount:
                 raise InsufficientCreditsError(amount, user.credits_balance)
 
-            # Update balance
+            # Atomic update within locked row
             new_balance = user.credits_balance - amount
             user.credits_balance = new_balance
             user.credits_used_total += amount

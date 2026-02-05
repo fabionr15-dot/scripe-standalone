@@ -10,10 +10,10 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.auth.middleware import require_auth
-from app.auth.models import SavedList, UserAccount
+from app.auth.models import SavedList, UserAccount, UserSearch
 from app.logging_config import get_logger
 from app.storage.db import db
-from app.storage.models import Company
+from app.storage.models import Company, Search
 
 logger = get_logger(__name__)
 
@@ -103,15 +103,24 @@ async def get_list(list_id: int, user: UserAccount = Depends(require_auth)):
         if not saved_list:
             raise HTTPException(status_code=404, detail="List not found")
 
-        # Parse company IDs from JSON
+        # Parse company IDs from JSON — only return companies from user's own searches
         company_ids = json.loads(saved_list.companies_json or "[]")
 
         companies = []
         if company_ids:
+            user_search_ids = [
+                us.search_id for us in
+                session.query(UserSearch.search_id)
+                .filter(UserSearch.user_id == user.id)
+                .all()
+            ]
             int_ids = [int(cid) for cid in company_ids]
             companies = (
                 session.query(Company)
-                .filter(Company.id.in_(int_ids))
+                .filter(
+                    Company.id.in_(int_ids),
+                    Company.search_id.in_(user_search_ids) if user_search_ids else False,
+                )
                 .all()
             )
 
@@ -171,6 +180,29 @@ async def add_leads_to_list(
 
         if not saved_list:
             raise HTTPException(status_code=404, detail="List not found")
+
+        # Verify that the requested company IDs belong to user's own searches
+        int_lead_ids = [int(lid) for lid in body.lead_ids]
+        if int_lead_ids:
+            user_search_ids = [
+                us.search_id for us in
+                session.query(UserSearch.search_id)
+                .filter(UserSearch.user_id == user.id)
+                .all()
+            ]
+            owned_company_count = (
+                session.query(Company)
+                .filter(
+                    Company.id.in_(int_lead_ids),
+                    Company.search_id.in_(user_search_ids) if user_search_ids else False,
+                )
+                .count()
+            )
+            if owned_company_count != len(int_lead_ids):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: some leads do not belong to your searches",
+                )
 
         existing_ids = json.loads(saved_list.companies_json or "[]")
         new_ids = list(set(existing_ids + body.lead_ids))
