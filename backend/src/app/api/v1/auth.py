@@ -2,9 +2,10 @@
 
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
 
+from app.api.rate_limit import limiter
 from app.auth.credits import CreditService
 from app.auth.local import LocalAuthService, JWT_EXPIRE_HOURS
 from app.auth.middleware import get_current_user, require_auth
@@ -86,7 +87,8 @@ class UserResponse(BaseModel):
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def register(request: RegisterRequest):
+@limiter.limit("5/minute")
+async def register(request: Request, body: RegisterRequest):
     """Register a new user account.
 
     Creates a local (email/password) account with welcome credits.
@@ -94,15 +96,15 @@ async def register(request: RegisterRequest):
     try:
         # Create user
         user = auth_service.create_user(
-            email=request.email,
-            password=request.password,
-            name=request.name,
+            email=body.email,
+            password=body.password,
+            name=body.name,
         )
 
         # Create access token
         token = auth_service.create_access_token(user)
 
-        logger.info("user_registered", user_id=user.id, email=request.email)
+        logger.info("user_registered", user_id=user.id, email=body.email)
 
         return TokenResponse(
             access_token=token,
@@ -128,12 +130,13 @@ async def register(request: RegisterRequest):
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(request: LoginRequest):
+@limiter.limit("10/minute")
+async def login(request: Request, body: LoginRequest):
     """Login with email and password.
 
     Returns JWT access token for authentication.
     """
-    user = auth_service.authenticate(request.email, request.password)
+    user = auth_service.authenticate(body.email, body.password)
 
     if not user:
         raise HTTPException(
@@ -279,17 +282,18 @@ async def change_password(
 
 
 @router.post("/forgot-password")
-async def forgot_password(request: ResetPasswordRequest):
+@limiter.limit("3/minute")
+async def forgot_password(request: Request, body: ResetPasswordRequest):
     """Request password reset email.
 
     Note: Always returns success to prevent email enumeration.
     """
-    token = auth_service.generate_reset_token(request.email)
+    token = auth_service.generate_reset_token(body.email)
 
     if token:
         # TODO: Send email with reset link
-        # In production: send_reset_email(request.email, token)
-        logger.info("password_reset_requested", email=request.email)
+        # In production: send_reset_email(body.email, token)
+        logger.info("password_reset_requested", email=body.email)
 
     # Always return success to prevent email enumeration
     return {
@@ -387,31 +391,50 @@ async def get_credit_history(
     }
 
 
+class PurchaseRequest(BaseModel):
+    """Credit purchase request."""
+    package_id: str
+
+
 @router.post("/credits/purchase")
+@limiter.limit("10/minute")
 async def purchase_credits(
-    package_id: str,
+    request: Request,
+    body: PurchaseRequest,
     user: UserAccount = Depends(require_auth),
 ):
-    """Purchase credit package.
+    """Purchase credit package via Stripe Checkout."""
+    from app.settings import settings as _settings
 
-    Note: In production, this would integrate with payment provider (Stripe, etc.)
-    """
     try:
-        # TODO: Integrate with payment provider
-        # For now, just add credits (testing mode)
+        if not _settings.stripe_secret_key:
+            # Fallback: test mode (development only)
+            if _settings.env == "development":
+                transaction = credit_service.purchase_credits(
+                    user_id=user.id,
+                    package_id=body.package_id,
+                    payment_reference="test_mode",
+                )
+                return {
+                    "success": True,
+                    "transaction_id": transaction.id,
+                    "credits_added": transaction.amount,
+                    "new_balance": transaction.balance_after,
+                }
+            raise ValueError("Pagamenti non configurati")
 
-        transaction = credit_service.purchase_credits(
+        from app.payments.stripe_service import create_checkout_session
+
+        base_url = _settings.allowed_origins.split(",")[0]
+        checkout_url = create_checkout_session(
             user_id=user.id,
-            package_id=package_id,
-            payment_reference="test_mode",
+            user_email=user.email,
+            package_id=body.package_id,
+            success_url=f"{base_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{base_url}/payment/cancel",
         )
 
-        return {
-            "success": True,
-            "transaction_id": transaction.id,
-            "credits_added": transaction.amount,
-            "new_balance": transaction.balance_after,
-        }
+        return {"checkout_url": checkout_url}
 
     except ValueError as e:
         raise HTTPException(
@@ -420,78 +443,77 @@ async def purchase_credits(
         )
 
 
-# ==================== TEST MODE (REMOVE IN PRODUCTION) ====================
+# ==================== TEST MODE (ONLY IN DEVELOPMENT) ====================
 
+from app.settings import settings as app_settings
 
-@router.post("/test-login", response_model=TokenResponse)
-async def test_login():
-    """TEST ONLY: Auto-login without password.
+if app_settings.env == "development":
 
-    Creates or retrieves a test user and returns a valid token.
-    REMOVE THIS ENDPOINT IN PRODUCTION!
-    """
-    from app.storage.db import db
-    from datetime import datetime
+    @router.post("/test-login", response_model=TokenResponse)
+    async def test_login():
+        """DEV ONLY: Auto-login without password.
 
-    test_email = "test@scripe.local"
+        Creates or retrieves a test user and returns a valid token.
+        Only available when ENV=development.
+        """
+        from app.storage.db import db
+        from datetime import datetime
 
-    with db.session() as session:
-        # Check if test user exists
-        user = session.query(UserAccount).filter(
-            UserAccount.email == test_email
-        ).first()
+        test_email = "test@scripe.local"
 
-        if not user:
-            # Create test user
-            user = UserAccount(
-                email=test_email,
-                name="Test User",
-                auth_provider=AuthProvider.LOCAL,
-                password_hash="test_mode_no_password",
-                subscription_tier=SubscriptionTier.PRO,
-                credits_balance=1000.0,  # Lots of credits for testing
-                email_verified=True,
-            )
-            session.add(user)
-            session.commit()
-            session.refresh(user)
-            logger.warning("test_user_created", email=test_email)
+        with db.session() as session:
+            user = session.query(UserAccount).filter(
+                UserAccount.email == test_email
+            ).first()
 
-        # Extract data BEFORE exiting context manager
-        user_id = user.id
-        user_email = user.email
-        user_name = user.name
-        user_auth_provider = user.auth_provider
-        user_subscription_tier = user.subscription_tier
-        user_credits_balance = user.credits_balance
-        user_is_active = user.is_active
-        user_created_at = user.created_at or datetime.utcnow()
+            if not user:
+                user = UserAccount(
+                    email=test_email,
+                    name="Test User",
+                    auth_provider=AuthProvider.LOCAL,
+                    password_hash="test_mode_no_password",
+                    subscription_tier=SubscriptionTier.PRO,
+                    credits_balance=1000.0,
+                    email_verified=True,
+                )
+                session.add(user)
+                session.commit()
+                session.refresh(user)
+                logger.warning("test_user_created", email=test_email)
 
-    # Create a simple object to pass to create_access_token
-    class SimpleUser:
-        def __init__(self):
-            self.id = user_id
-            self.email = user_email
-            self.auth_provider = user_auth_provider
-            self.subscription_tier = user_subscription_tier
+            user_id = user.id
+            user_email = user.email
+            user_name = user.name
+            user_auth_provider = user.auth_provider
+            user_subscription_tier = user.subscription_tier
+            user_credits_balance = user.credits_balance
+            user_is_active = user.is_active
+            user_created_at = user.created_at or datetime.utcnow()
 
-    simple_user = SimpleUser()
-    token = auth_service.create_access_token(simple_user)
+        class SimpleUser:
+            def __init__(self):
+                self.id = user_id
+                self.email = user_email
+                self.auth_provider = user_auth_provider
+                self.subscription_tier = user_subscription_tier
 
-    logger.warning("test_login_used", user_id=user_id)
+        simple_user = SimpleUser()
+        token = auth_service.create_access_token(simple_user)
 
-    return TokenResponse(
-        access_token=token,
-        token_type="bearer",
-        expires_in=JWT_EXPIRE_HOURS * 3600,
-        user=User(
-            id=user_id,
-            email=user_email,
-            name=user_name,
-            auth_provider=user_auth_provider,
-            subscription_tier=user_subscription_tier,
-            credits_balance=user_credits_balance,
-            is_active=user_is_active,
-            created_at=user_created_at,
-        ),
-    )
+        logger.warning("test_login_used", user_id=user_id)
+
+        return TokenResponse(
+            access_token=token,
+            token_type="bearer",
+            expires_in=JWT_EXPIRE_HOURS * 3600,
+            user=User(
+                id=user_id,
+                email=user_email,
+                name=user_name,
+                auth_provider=user_auth_provider,
+                subscription_tier=user_subscription_tier,
+                credits_balance=user_credits_balance,
+                is_active=user_is_active,
+                created_at=user_created_at,
+            ),
+        )

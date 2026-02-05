@@ -11,6 +11,11 @@ import { NewSearchPage } from './pages/NewSearchPage';
 import { SearchResultsPage } from './pages/SearchResultsPage';
 import { PricingPage } from './pages/PricingPage';
 import { ListsPage } from './pages/ListsPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { TermsPage } from './pages/TermsPage';
+import { CookiePolicyPage } from './pages/CookiePolicyPage';
+import { PaymentSuccessPage } from './pages/PaymentSuccessPage';
+import { PaymentCancelPage } from './pages/PaymentCancelPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 export default function App() {
@@ -23,6 +28,9 @@ export default function App() {
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/cookies" element={<CookiePolicyPage />} />
         </Route>
 
         {/* Protected dashboard */}
@@ -32,6 +40,8 @@ export default function App() {
           <Route path="/searches/new" element={<NewSearchPage />} />
           <Route path="/searches/:id" element={<SearchResultsPage />} />
           <Route path="/lists" element={<ListsPage />} />
+          <Route path="/payment/success" element={<PaymentSuccessPage />} />
+          <Route path="/payment/cancel" element={<PaymentCancelPage />} />
         </Route>
 
         {/* Catch all */}

@@ -33,8 +33,13 @@ dependencies = [
     "reportlab>=4.0.8",
     # Auth
     "passlib[bcrypt]>=1.7.4",
+    "bcrypt>=4.0,<5.0",
     "python-jose[cryptography]>=3.3.0",
     "dnspython>=2.4.2",  # For email MX validation
+    # Rate Limiting
+    "slowapi>=0.1.9",
+    # Payments
+    "stripe>=7.0.0",
 ]
 
 [project.optional-dependencies]

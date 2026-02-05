@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     app_name: str = "scripe"
     env: str = "development"
     log_level: str = "INFO"
+    allowed_origins: str = "http://localhost:3005"
+
+    # JWT
+    jwt_secret_key: str = "change-me-in-production"
 
     # Database
     database_url: str = "sqlite:///./scripe.db"
@@ -26,6 +30,11 @@ class Settings(BaseSettings):
     google_places_api_key: str | None = None
     bing_maps_api_key: str | None = None
     openai_api_key: str | None = None  # For AI query interpretation
+
+    # Stripe
+    stripe_secret_key: str | None = None
+    stripe_publishable_key: str | None = None
+    stripe_webhook_secret: str | None = None
 
     # Proxy Configuration
     proxy_urls: list[str] = Field(default_factory=list)  # List of proxy URLs

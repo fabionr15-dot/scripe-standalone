@@ -1,17 +1,20 @@
 """Main FastAPI application for Scripe API."""
 
-import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
 
+from app.api.rate_limit import limiter
 from app.api.routes import get_routers
 from app.api.v1.ai import router as ai_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.export import router as export_router
 from app.api.v1.searches import router as searches_v1_router
 from app.api.v1.sources import router as sources_router
+from app.api.v1.webhooks import router as webhooks_router
 from app.logging_config import get_logger
 from app.settings import settings
 from app.sources.setup import setup_sources
@@ -49,18 +52,26 @@ def create_app() -> FastAPI:
     Returns:
         Configured FastAPI app
     """
+    # Hide API docs in production
+    is_production = settings.env == "production"
+
     app = FastAPI(
         title="Scripe API",
         description="B2B Lead Generation Platform API",
         version="1.0.0",
-        docs_url="/api/docs",
-        redoc_url="/api/redoc",
-        openapi_url="/api/openapi.json",
+        docs_url=None if is_production else "/api/docs",
+        redoc_url=None if is_production else "/api/redoc",
+        openapi_url=None if is_production else "/api/openapi.json",
         lifespan=lifespan,
     )
 
-    # CORS middleware - configurable via environment variable
-    allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+    # CORS middleware - restrict origins in production
+    allowed_origins = (
+        settings.allowed_origins.split(",")
+        if is_production
+        else ["*"]
+    )
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=allowed_origins,
@@ -68,6 +79,16 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Rate limiting (shared instance from rate_limit module)
+    app.state.limiter = limiter
+
+    @app.exception_handler(RateLimitExceeded)
+    async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+        return JSONResponse(
+            status_code=429,
+            content={"detail": "Troppe richieste. Riprova tra poco."},
+        )
 
     # Include legacy routers (v0)
     for router in get_routers():
@@ -79,6 +100,7 @@ def create_app() -> FastAPI:
     app.include_router(searches_v1_router, prefix="/api/v1")
     app.include_router(sources_router, prefix="/api/v1")
     app.include_router(export_router, prefix="/api/v1")
+    app.include_router(webhooks_router, prefix="/api/v1")
 
     # Health check endpoint
     @app.get("/health")

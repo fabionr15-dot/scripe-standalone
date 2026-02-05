@@ -6,10 +6,12 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from app.auth.middleware import require_auth
+from app.auth.models import UserAccount, UserSearch
 from app.logging_config import get_logger
 from app.sources.manager import SearchCriteria, SearchProgress, get_source_manager
 from app.storage.db import db
@@ -18,6 +20,27 @@ from app.storage.models_v2 import Company, Run, Search
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/searches", tags=["searches-v1"])
+
+
+def _verify_search_ownership(session, search_id: int, user_id: int) -> Search:
+    """Verify that a search exists and belongs to the user.
+
+    Returns the Search object if authorized, raises 404 otherwise.
+    """
+    search = session.query(Search).filter(Search.id == search_id).first()
+    if not search:
+        raise HTTPException(status_code=404, detail="Search not found")
+
+    # Check ownership via UserSearch table
+    user_search = session.query(UserSearch).filter(
+        UserSearch.search_id == search_id,
+        UserSearch.user_id == user_id,
+    ).first()
+
+    if not user_search:
+        raise HTTPException(status_code=404, detail="Search not found")
+
+    return search
 
 
 # ==================== MODELS ====================
@@ -166,7 +189,7 @@ async def estimate_search(search_data: SearchCreateV1):
 
 
 @router.post("", response_model=SearchResponse)
-async def create_search(search_data: SearchCreateV1):
+async def create_search(search_data: SearchCreateV1, user: UserAccount = Depends(require_auth)):
     """Create a new search.
 
     Creates the search record but does not start execution.
@@ -198,11 +221,21 @@ async def create_search(search_data: SearchCreateV1):
             validate_email=search_data.validate_email or tier_config["validate_email"],
         )
         session.add(search)
+        session.flush()
+
+        # Link search to user
+        user_search = UserSearch(
+            user_id=user.id,
+            search_id=search.id,
+            credits_spent=0.0,
+        )
+        session.add(user_search)
         session.commit()
 
         logger.info(
             "search_v1_created",
             search_id=search.id,
+            user_id=user.id,
             query=search_data.query,
             quality_tier=search_data.quality_tier.value,
         )
@@ -220,13 +253,10 @@ async def create_search(search_data: SearchCreateV1):
 
 
 @router.get("/{search_id}")
-async def get_search(search_id: int):
+async def get_search(search_id: int, user: UserAccount = Depends(require_auth)):
     """Get search details."""
     with db.session() as session:
-        search = session.query(Search).filter(Search.id == search_id).first()
-
-        if not search:
-            raise HTTPException(status_code=404, detail="Search not found")
+        search = _verify_search_ownership(session, search_id, user.id)
 
         # Get latest run
         latest_run = session.query(Run).filter(
@@ -259,17 +289,18 @@ async def get_search(search_id: int):
 
 
 @router.post("/{search_id}/run")
-async def start_search_run(search_id: int, background_tasks: BackgroundTasks):
+async def start_search_run(
+    search_id: int,
+    background_tasks: BackgroundTasks,
+    user: UserAccount = Depends(require_auth),
+):
     """Start a search run.
 
     Initiates the search execution in the background.
     Use GET /searches/{search_id}/runs/{run_id}/stream for real-time progress.
     """
     with db.session() as session:
-        search = session.query(Search).filter(Search.id == search_id).first()
-
-        if not search:
-            raise HTTPException(status_code=404, detail="Search not found")
+        search = _verify_search_ownership(session, search_id, user.id)
 
         # Create run record
         run = Run(
@@ -314,14 +345,20 @@ async def start_search_run(search_id: int, background_tasks: BackgroundTasks):
 
 
 @router.get("/{search_id}/runs/{run_id}/stream")
-async def stream_run_progress(search_id: int, run_id: int):
+async def stream_run_progress(
+    search_id: int,
+    run_id: int,
+    user: UserAccount = Depends(require_auth),
+):
     """Stream search run progress via Server-Sent Events (SSE).
 
     Returns real-time progress updates as the search executes.
     Connect to this endpoint with an EventSource client.
     """
-    # Verify run exists
+    # Verify ownership and run exists
     with db.session() as session:
+        _verify_search_ownership(session, search_id, user.id)
+
         run = session.query(Run).filter(
             Run.id == run_id,
             Run.search_id == search_id,
@@ -388,9 +425,15 @@ async def stream_run_progress(search_id: int, run_id: int):
 
 
 @router.get("/{search_id}/runs/{run_id}")
-async def get_run_status(search_id: int, run_id: int):
+async def get_run_status(
+    search_id: int,
+    run_id: int,
+    user: UserAccount = Depends(require_auth),
+):
     """Get run status (non-streaming)."""
     with db.session() as session:
+        _verify_search_ownership(session, search_id, user.id)
+
         run = session.query(Run).filter(
             Run.id == run_id,
             Run.search_id == search_id,
@@ -425,6 +468,7 @@ async def get_search_companies(
     has_phone: bool | None = None,
     has_email: bool | None = None,
     has_website: bool | None = None,
+    user: UserAccount = Depends(require_auth),
 ):
     """Get paginated search results with filtering.
 
@@ -438,10 +482,7 @@ async def get_search_companies(
         has_website: Filter for companies with website
     """
     with db.session() as session:
-        search = session.query(Search).filter(Search.id == search_id).first()
-
-        if not search:
-            raise HTTPException(status_code=404, detail="Search not found")
+        search = _verify_search_ownership(session, search_id, user.id)
 
         # Build query
         query = session.query(Company).filter(Company.search_id == search_id)

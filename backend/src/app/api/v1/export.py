@@ -6,10 +6,12 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from app.auth.middleware import require_auth
+from app.auth.models import UserAccount, UserSearch
 from app.logging_config import get_logger
 from app.storage.db import db
 from app.storage.models_v2 import Company, Search
@@ -66,6 +68,7 @@ VALIDATION_COLUMNS = [
 async def export_search(
     search_id: int,
     options: ExportOptions | None = None,
+    user: UserAccount = Depends(require_auth),
 ):
     """Export search results in specified format.
 
@@ -75,8 +78,15 @@ async def export_search(
         options = ExportOptions()
 
     with db.session() as session:
-        search = session.query(Search).filter(Search.id == search_id).first()
+        # Verify ownership
+        user_search = session.query(UserSearch).filter(
+            UserSearch.search_id == search_id,
+            UserSearch.user_id == user.id,
+        ).first()
+        if not user_search:
+            raise HTTPException(status_code=404, detail="Search not found")
 
+        search = session.query(Search).filter(Search.id == search_id).first()
         if not search:
             raise HTTPException(status_code=404, detail="Search not found")
 
@@ -112,6 +122,7 @@ async def export_search_csv(
     search_id: int,
     min_quality: float = Query(default=0.0, ge=0.0, le=1.0),
     include_scores: bool = True,
+    user: UserAccount = Depends(require_auth),
 ):
     """Quick CSV export endpoint."""
     options = ExportOptions(
@@ -119,7 +130,7 @@ async def export_search_csv(
         min_quality=min_quality,
         include_scores=include_scores,
     )
-    return await export_search(search_id, options)
+    return await export_search(search_id, options, user)
 
 
 @router.get("/{search_id}/export/excel")
@@ -127,6 +138,7 @@ async def export_search_excel(
     search_id: int,
     min_quality: float = Query(default=0.0, ge=0.0, le=1.0),
     include_scores: bool = True,
+    user: UserAccount = Depends(require_auth),
 ):
     """Quick Excel export endpoint."""
     options = ExportOptions(
@@ -134,13 +146,14 @@ async def export_search_excel(
         min_quality=min_quality,
         include_scores=include_scores,
     )
-    return await export_search(search_id, options)
+    return await export_search(search_id, options, user)
 
 
 @router.get("/{search_id}/export/pdf")
 async def export_search_pdf(
     search_id: int,
     min_quality: float = Query(default=0.0, ge=0.0, le=1.0),
+    user: UserAccount = Depends(require_auth),
 ):
     """Quick PDF export endpoint."""
     options = ExportOptions(
@@ -148,7 +161,7 @@ async def export_search_pdf(
         min_quality=min_quality,
         include_scores=True,
     )
-    return await export_search(search_id, options)
+    return await export_search(search_id, options, user)
 
 
 # ==================== EXPORT IMPLEMENTATIONS ====================

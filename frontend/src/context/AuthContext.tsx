@@ -61,9 +61,8 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
   return response.json();
 }
 
-// Auto-login nur in Development-Modus aktiviert
-// In Production (npm run build) ist import.meta.env.DEV = false
-const DEV_AUTO_LOGIN = import.meta.env.DEV;
+// DEV MODE: Auto-login für Tests ohne Passwort/Email
+const DEV_AUTO_LOGIN = import.meta.env.VITE_DEV_AUTO_LOGIN === 'true';
 
 const DEV_USER: User = {
   id: 1,

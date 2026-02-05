@@ -31,7 +31,7 @@ interface InterpretedQuery {
     cities: string[];
     regions: string[];
     country: string;
-    countries?: string[]; // Für Multi-Country Suche
+    countries?: string[]; // Per ricerca multi-paese
   };
   keywords_include: string[];
   keywords_exclude: string[];
@@ -43,18 +43,18 @@ type QualityTier = 'basic' | 'standard' | 'premium';
 
 // Country code to name mapping
 const COUNTRY_NAMES: Record<string, string> = {
-  DE: 'Deutschland',
-  AT: 'Österreich',
-  CH: 'Schweiz',
-  IT: 'Italien',
-  FR: 'Frankreich',
-  ES: 'Spanien',
-  NL: 'Niederlande',
-  BE: 'Belgien',
-  PL: 'Polen',
-  CZ: 'Tschechien',
-  PT: 'Portugal',
-  GB: 'Großbritannien',
+  DE: 'Germania',
+  AT: 'Austria',
+  CH: 'Svizzera',
+  IT: 'Italia',
+  FR: 'Francia',
+  ES: 'Spagna',
+  NL: 'Paesi Bassi',
+  BE: 'Belgio',
+  PL: 'Polonia',
+  CZ: 'Repubblica Ceca',
+  PT: 'Portogallo',
+  GB: 'Regno Unito',
 };
 
 // Helper function to format location display
@@ -100,7 +100,7 @@ function formatLocationDisplay(locations: InterpretedQuery['locations']): string
     }
   }
 
-  return parts.join(' ') || 'Nicht angegeben';
+  return parts.join(' ') || 'Non specificato';
 }
 
 export function NewSearchPage() {
@@ -472,27 +472,27 @@ export function NewSearchPage() {
             <div className="flex items-center justify-between">
               <h3 className="font-medium">Stima della ricerca</h3>
               <span className="text-sm text-gray-500">
-                ~{estimate.estimated_available.toLocaleString('de-DE')} verfügbar im Markt
+                ~{estimate.estimated_available.toLocaleString('it-IT')} disponibili sul mercato
               </span>
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-gray-50 rounded-lg p-4 text-center">
                 <Building2 className="h-6 w-6 mx-auto text-gray-600 mb-2" />
-                <p className="text-2xl font-bold">{estimate.estimated_results.toLocaleString('de-DE')}</p>
-                <p className="text-sm text-gray-500">Lead zu sammeln</p>
+                <p className="text-2xl font-bold">{estimate.estimated_results.toLocaleString('it-IT')}</p>
+                <p className="text-sm text-gray-500">Lead da raccogliere</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 text-center">
                 <Clock className="h-6 w-6 mx-auto text-gray-600 mb-2" />
                 <p className="text-2xl font-bold">
                   {Math.ceil(estimate.estimated_time_seconds / 60)}
                 </p>
-                <p className="text-sm text-gray-500">Minuten</p>
+                <p className="text-sm text-gray-500">Minuti</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 text-center">
                 <CreditCard className="h-6 w-6 mx-auto text-gray-600 mb-2" />
-                <p className="text-2xl font-bold">{estimate.estimated_credits.toLocaleString('de-DE')}</p>
-                <p className="text-sm text-gray-500">Credits</p>
+                <p className="text-2xl font-bold">{estimate.estimated_credits.toLocaleString('it-IT')}</p>
+                <p className="text-sm text-gray-500">Crediti</p>
               </div>
             </div>
 

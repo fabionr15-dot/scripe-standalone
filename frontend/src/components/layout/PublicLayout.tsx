@@ -51,24 +51,15 @@ export function PublicLayout() {
               <h4 className="font-semibold mb-4">Prodotto</h4>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li><Link to="/pricing">Prezzi</Link></li>
-                <li><a href="#">Documentazione</a></li>
-                <li><a href="#">API</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Azienda</h4>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><a href="#">Chi siamo</a></li>
-                <li><a href="#">Contatti</a></li>
-                <li><a href="#">Blog</a></li>
+                <li><Link to="/register">Inizia gratis</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Legale</h4>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <li><a href="#">Privacy Policy</a></li>
-                <li><a href="#">Termini di Servizio</a></li>
-                <li><a href="#">Cookie Policy</a></li>
+                <li><Link to="/privacy">Privacy Policy</Link></li>
+                <li><Link to="/terms">Termini di Servizio</Link></li>
+                <li><Link to="/cookies">Cookie Policy</Link></li>
               </ul>
             </div>
           </div>

@@ -108,25 +108,27 @@ export function LoginPage() {
             </button>
           </form>
 
-                    {/* Test Mode Button */}
-          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800 mb-3 text-center font-medium">
-              🧪 Modalità Test
-            </p>
-            <button
-              type="button"
-              onClick={handleTestLogin}
-              disabled={isTestLoading}
-              className="w-full bg-yellow-500 text-white py-2 rounded-lg font-semibold hover:bg-yellow-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {isTestLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Zap className="h-4 w-4" />
-              )}
-              Accedi come Test User (1000 crediti)
-            </button>
-          </div>
+          {/* Test Mode Button - only visible in development */}
+          {import.meta.env.DEV && (
+            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800 mb-3 text-center font-medium">
+                🧪 Modalità Test
+              </p>
+              <button
+                type="button"
+                onClick={handleTestLogin}
+                disabled={isTestLoading}
+                className="w-full bg-yellow-500 text-white py-2 rounded-lg font-semibold hover:bg-yellow-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isTestLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Zap className="h-4 w-4" />
+                )}
+                Accedi come Test User (1000 crediti)
+              </button>
+            </div>
+          )}
 
           <p className="mt-6 text-center text-gray-600">
             Non hai un account?{' '}

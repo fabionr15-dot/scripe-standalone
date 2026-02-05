@@ -31,6 +31,7 @@ class Database:
         self.SessionLocal = sessionmaker(
             autocommit=False,
             autoflush=False,
+            expire_on_commit=False,
             bind=self.engine,
         )
         logger.info("database_initialized", url=self.database_url)
