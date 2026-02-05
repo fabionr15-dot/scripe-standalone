@@ -346,7 +346,7 @@ class EnrichmentWorker:
         target_tier: QualityTier = QualityTier.STANDARD,
         search_criteria: dict[str, Any] | None = None,
         min_quality: float = 0.4,
-        progress_callback: callable | None = None,
+        progress_callback: Any = None,
     ) -> list[EnrichmentResult]:
         """Process search results through enrichment pipeline.
 
