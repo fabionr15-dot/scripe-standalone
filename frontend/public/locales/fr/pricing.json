@@ -1,0 +1,50 @@
+{
+  "pricing": {
+    "title": "Tarifs - Scripe",
+    "heading": "Simple et transparent",
+    "subtitle": "Payez uniquement ce que vous utilisez. Pas d'abonnement, pas d'engagement. Chaque crédit = 1 lead vérifié.",
+    "yourCredits": "Vos crédits :",
+    "mostPopular": "Le plus populaire",
+    "credits": "{{count}} crédits",
+    "bonusCredits": "+ {{count}} bonus gratuits",
+    "perCredit": "€{{price}} par crédit",
+    "buy": "Acheter",
+    "purchaseError": "Erreur lors de l'achat. Veuillez réessayer.",
+    "features": {
+      "title": "Ce que chaque crédit inclut",
+      "aiSearch": "Recherche IA illimitée",
+      "exportExcelCsv": "Export Excel/CSV",
+      "phoneValidation": "Validation téléphonique",
+      "emailVerification": "Vérification MX des e-mails",
+      "websiteCrawling": "Exploration de sites web",
+      "multiSource": "Multi-sources : Google, Bing, Pages Jaunes"
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "q1": "Comment fonctionnent les crédits ?",
+      "a1": "Chaque crédit vous permet d'obtenir 1 lead vérifié. Le coût varie selon le niveau de qualité choisi : Basic (1 crédit), Standard (2 crédits), Premium (4 crédits).",
+      "q2": "Les crédits expirent-ils ?",
+      "a2": "Non, les crédits n'expirent jamais. Vous pouvez les utiliser quand vous le souhaitez.",
+      "q3": "Puis-je obtenir un remboursement ?",
+      "a3": "Si vous n'êtes pas satisfait, contactez-nous dans les 14 jours suivant l'achat pour un remboursement complet des crédits non utilisés.",
+      "q4": "Acceptez-vous la facturation professionnelle ?",
+      "a4": "Oui, nous émettons des factures pour tous les achats. Entrez les coordonnées de votre entreprise lors du paiement."
+    }
+  },
+  "paymentSuccess": {
+    "title": "Paiement effectué - Scripe",
+    "heading": "Paiement effectué !",
+    "description": "Vos crédits ont été ajoutés à votre compte. Vous pouvez commencer à les utiliser immédiatement.",
+    "updatingBalance": "Mise à jour du solde...",
+    "startSearch": "Lancer une recherche",
+    "goToDashboard": "Aller au tableau de bord",
+    "reference": "Référence :"
+  },
+  "paymentCancel": {
+    "title": "Paiement annulé - Scripe",
+    "heading": "Paiement annulé",
+    "description": "Le paiement n'a pas été effectué. Aucun montant n'a été débité. Vous pouvez réessayer quand vous le souhaitez.",
+    "backToPricing": "Retour aux tarifs",
+    "goToDashboard": "Aller au tableau de bord"
+  }
+}

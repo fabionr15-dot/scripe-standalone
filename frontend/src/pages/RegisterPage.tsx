@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Database, Loader2, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
+import { LocalizedLink } from '@/i18n/LocalizedLink';
+import { useLocalizedNavigate } from '@/i18n/useLocalizedNavigate';
 
 export function RegisterPage() {
-  const navigate = useNavigate();
+  const navigate = useLocalizedNavigate();
   const { register } = useAuth();
+  const { t } = useTranslation('auth');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -19,19 +22,18 @@ export function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const passwordRequirements = [
-    { test: (p: string) => p.length >= 8, label: 'Almeno 8 caratteri' },
-    { test: (p: string) => /[A-Z]/.test(p), label: 'Una lettera maiuscola' },
-    { test: (p: string) => /[a-z]/.test(p), label: 'Una lettera minuscola' },
-    { test: (p: string) => /[0-9]/.test(p), label: 'Un numero' },
+    { test: (p: string) => p.length >= 8, label: t('register.requirements.minLength') },
+    { test: (p: string) => /[A-Z]/.test(p), label: t('register.requirements.uppercase') },
+    { test: (p: string) => /[a-z]/.test(p), label: t('register.requirements.lowercase') },
+    { test: (p: string) => /[0-9]/.test(p), label: t('register.requirements.number') },
   ];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
 
-    // Validate
     if (formData.password !== formData.confirmPassword) {
-      setError('Le password non corrispondono');
+      setError(t('register.errors.passwordMismatch'));
       return;
     }
 
@@ -39,12 +41,12 @@ export function RegisterPage() {
       (req) => !req.test(formData.password)
     );
     if (failedRequirements.length > 0) {
-      setError('La password non soddisfa tutti i requisiti');
+      setError(t('register.errors.passwordRequirements'));
       return;
     }
 
     if (!formData.acceptTerms) {
-      setError('Devi accettare i termini e condizioni');
+      setError(t('register.errors.acceptTerms'));
       return;
     }
 
@@ -54,7 +56,7 @@ export function RegisterPage() {
       await register(formData.email, formData.password, formData.name);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Errore durante la registrazione');
+      setError(err.message || t('register.errors.registrationFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -63,15 +65,15 @@ export function RegisterPage() {
   return (
     <>
       <Helmet>
-        <title>Registrati - Scripe</title>
+        <title>{t('register.title')}</title>
       </Helmet>
 
       <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Database className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold">Crea il tuo account</h1>
-            <p className="text-gray-600">Inizia gratis con 10 crediti</p>
+            <h1 className="text-2xl font-bold">{t('register.heading')}</h1>
+            <p className="text-gray-600">{t('register.subtitle')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -83,7 +85,7 @@ export function RegisterPage() {
 
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Nome completo
+                {t('register.fullName')}
               </label>
               <input
                 id="name"
@@ -91,14 +93,14 @@ export function RegisterPage() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Mario Rossi"
+                placeholder={t('register.namePlaceholder')}
                 required
               />
             </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1">
-                Email
+                {t('register.email')}
               </label>
               <input
                 id="email"
@@ -106,14 +108,14 @@ export function RegisterPage() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="nome@azienda.it"
+                placeholder={t('register.emailPlaceholder')}
                 required
               />
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium mb-1">
-                Password
+                {t('register.password')}
               </label>
               <input
                 id="password"
@@ -141,7 +143,7 @@ export function RegisterPage() {
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
-                Conferma password
+                {t('register.confirmPassword')}
               </label>
               <input
                 id="confirmPassword"
@@ -163,14 +165,14 @@ export function RegisterPage() {
                 className="rounded border-gray-300 mt-1"
               />
               <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
-                Accetto i{' '}
-                <Link to="/terms" className="text-blue-600 hover:underline">
-                  Termini di Servizio
-                </Link>{' '}
-                e la{' '}
-                <Link to="/privacy" className="text-blue-600 hover:underline">
-                  Privacy Policy
-                </Link>
+                {t('register.acceptTerms')}{' '}
+                <LocalizedLink to="/terms" className="text-blue-600 hover:underline">
+                  {t('register.termsLink')}
+                </LocalizedLink>{' '}
+                {t('register.and')}{' '}
+                <LocalizedLink to="/privacy" className="text-blue-600 hover:underline">
+                  {t('register.privacyLink')}
+                </LocalizedLink>
               </label>
             </div>
 
@@ -180,15 +182,15 @@ export function RegisterPage() {
               className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-              Crea account
+              {t('register.submit')}
             </button>
           </form>
 
           <p className="mt-6 text-center text-gray-600">
-            Hai già un account?{' '}
-            <Link to="/login" className="text-blue-600 hover:underline font-medium">
-              Accedi
-            </Link>
+            {t('register.hasAccount')}{' '}
+            <LocalizedLink to="/login" className="text-blue-600 hover:underline font-medium">
+              {t('register.loginLink')}
+            </LocalizedLink>
           </p>
         </div>
       </div>

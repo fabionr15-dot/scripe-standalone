@@ -1,0 +1,180 @@
+{
+  "privacy": {
+    "title": "Datenschutzerklärung - Scripe",
+    "heading": "Datenschutzerklärung",
+    "lastUpdated": "Letzte Aktualisierung: Februar 2026",
+    "section1": {
+      "title": "1. Verantwortlicher",
+      "content": "Scripe (\"wir\", \"unser\") verpflichtet sich zum Schutz Ihrer Privatsphäre. Diese Erklärung beschreibt, wie wir Ihre personenbezogenen Daten gemäß der Datenschutz-Grundverordnung (DSGVO - Verordnung EU 2016/679) erheben, nutzen und schützen."
+    },
+    "section2": {
+      "title": "2. Daten, die wir erheben",
+      "userDataTitle": "Vom Nutzer bereitgestellte Daten",
+      "userData": [
+        "E-Mail-Adresse und Name (Kontoregistrierung)",
+        "Rechnungsdaten (verarbeitet über Stripe)",
+        "Suchanfragen und Nutzungspräferenzen"
+      ],
+      "autoDataTitle": "Automatisch erhobene Daten",
+      "autoData": [
+        "IP-Adresse und technische Browserdaten",
+        "Zugriffs- und Plattformnutzungsprotokolle",
+        "Technische Cookies für den Betrieb"
+      ]
+    },
+    "section3": {
+      "title": "3. Zweck der Verarbeitung",
+      "purposes": [
+        "Bereitstellung des B2B-Leadgenerierungsdienstes",
+        "Konto- und Credit-Verwaltung",
+        "Zahlungsabwicklung",
+        "Servicebezogene Kommunikation",
+        "Plattformverbesserung"
+      ]
+    },
+    "section4": {
+      "title": "4. Rechtsgrundlage",
+      "content": "Wir verarbeiten Ihre Daten auf Grundlage von: Vertragserfüllung (Servicebereitstellung), Einwilligung (für Marketingkommunikation), berechtigtes Interesse (Serviceverbesserung und Sicherheit), rechtliche Verpflichtung (steuerliche Datenaufbewahrung)."
+    },
+    "section5": {
+      "title": "5. Vom Service erhobene Geschäftsdaten",
+      "content": "Scripe erhebt ausschließlich öffentlich verfügbare Geschäftsdaten (Firmenname, Geschäftstelefon, Geschäfts-E-Mail, Firmenadresse, Website) aus öffentlichen Quellen wie Google, Bing und Branchenverzeichnissen. Wir erheben keine personenbezogenen Daten von Privatpersonen."
+    },
+    "section6": {
+      "title": "6. Datenweitergabe",
+      "intro": "Ihre Daten werden nicht an Dritte verkauft. Wir teilen Daten nur mit:",
+      "parties": [
+        "Stripe (Zahlungsabwicklung)",
+        "Hosting-Anbieter (technische Infrastruktur)",
+        "Zuständige Behörden (wenn gesetzlich erforderlich)"
+      ]
+    },
+    "section7": {
+      "title": "7. Datenspeicherung",
+      "content": "Wir bewahren Ihre Kontodaten für die Dauer der Vertragsbeziehung und für die gesetzlich vorgeschriebenen Zeiträume auf (z.B. steuerliche Pflichten). Suchergebnisse werden in Ihrem Konto bis zur Löschung aufbewahrt."
+    },
+    "section8": {
+      "title": "8. Ihre Rechte",
+      "intro": "Gemäß der DSGVO haben Sie das Recht auf:",
+      "rights": [
+        "Auskunft über Ihre personenbezogenen Daten",
+        "Berichtigung unrichtiger Daten",
+        "Löschung der Daten (\"Recht auf Vergessenwerden\")",
+        "Einschränkung der Verarbeitung",
+        "Datenübertragbarkeit",
+        "Widerspruch gegen die Verarbeitung"
+      ],
+      "exercise": "Um Ihre Rechte auszuüben, kontaktieren Sie uns unter der im Kontaktbereich angegebenen E-Mail-Adresse."
+    },
+    "section9": {
+      "title": "9. Sicherheit",
+      "content": "Wir ergreifen angemessene technische und organisatorische Maßnahmen zum Schutz Ihrer Daten, darunter Verschlüsselung bei der Übertragung (HTTPS), Passwort-Hashing und Zugangskontrollen."
+    },
+    "section10": {
+      "title": "10. Kontakt",
+      "content": "Bei Fragen zum Datenschutz oder zur Ausübung Ihrer Rechte kontaktieren Sie uns unter: privacy@scripe.fabioprivato.org"
+    }
+  },
+  "terms": {
+    "title": "AGB - Scripe",
+    "heading": "Allgemeine Geschäftsbedingungen",
+    "lastUpdated": "Letzte Aktualisierung: Februar 2026",
+    "section1": {
+      "title": "1. Annahme der Bedingungen",
+      "content": "Durch die Nutzung von Scripe (\"der Service\") akzeptieren Sie diese AGB. Wenn Sie diese Bedingungen nicht akzeptieren, nutzen Sie den Service nicht."
+    },
+    "section2": {
+      "title": "2. Beschreibung des Services",
+      "content": "Scripe ist eine B2B-Leadgenerierungsplattform, die öffentlich verfügbare Geschäftsdaten aus Online-Quellen sammelt. Der Service bietet verifizierte Geschäftskontakte über ein Credit-basiertes System."
+    },
+    "section3": {
+      "title": "3. Benutzerkonto",
+      "items": [
+        "Sie müssen bei der Registrierung korrekte Angaben machen",
+        "Sie sind für die Sicherheit Ihres Kontos verantwortlich",
+        "Ein Konto ist persönlich und nicht übertragbar",
+        "Sie müssen mindestens 18 Jahre alt sein"
+      ]
+    },
+    "section4": {
+      "title": "4. Credit-System",
+      "items": [
+        "Credits werden über verfügbare Pakete gekauft",
+        "Jede Suche verbraucht Credits je nach Qualitätsstufe",
+        "Gekaufte Credits verfallen nicht",
+        "Credits sind nicht erstattungsfähig, außer gesetzlich vorgeschrieben",
+        "Neue Nutzer erhalten 10 kostenlose Willkommens-Credits"
+      ]
+    },
+    "section5": {
+      "title": "5. Erlaubte Nutzung",
+      "intro": "Sie verpflichten sich, den Service nur zu nutzen für:",
+      "allowed": [
+        "Suche nach Geschäftskontakten für legitime B2B-Zwecke",
+        "Geschäftliche Kommunikation gemäß geltendem Recht"
+      ],
+      "prohibitedIntro": "Es ist verboten:",
+      "prohibited": [
+        "Daten für Spam oder unerwünschte Kommunikation an Privatpersonen zu nutzen",
+        "Erhaltene Daten ohne Genehmigung weiterzuverkaufen",
+        "Unbefugten Zugriff auf das System zu versuchen",
+        "Den Service für illegale Aktivitäten zu nutzen"
+      ]
+    },
+    "section6": {
+      "title": "6. Rückerstattungen",
+      "content": "Sie können innerhalb von 14 Tagen nach dem Kauf eine Rückerstattung ungenutzter Credits beantragen, gemäß dem Verbraucherschutzrecht. Bereits genutzte Credits sind nicht erstattungsfähig."
+    },
+    "section7": {
+      "title": "7. Haftungsbeschränkung",
+      "content": "Scripe stellt mit größtmöglicher Sorgfalt aus öffentlichen Quellen gesammelte Daten bereit, garantiert jedoch nicht die 100%ige Vollständigkeit oder Richtigkeit der Daten. Der Service wird \"wie besehen\" bereitgestellt."
+    },
+    "section8": {
+      "title": "8. Geistiges Eigentum",
+      "content": "Die Scripe-Plattform, ihr Code, Design und Inhalte sind urheberrechtlich geschützt. Bereitgestellte Geschäftsdaten dürfen vom Nutzer für eigene geschäftliche Aktivitäten verwendet werden."
+    },
+    "section9": {
+      "title": "9. Änderungen der Bedingungen",
+      "content": "Wir behalten uns das Recht vor, diese Bedingungen zu ändern. Änderungen werden per E-Mail oder durch einen Hinweis auf der Plattform mitgeteilt. Die weitere Nutzung des Services nach Änderungen gilt als Annahme der neuen Bedingungen."
+    },
+    "section10": {
+      "title": "10. Anwendbares Recht",
+      "content": "Diese Bedingungen unterliegen dem Recht der Europäischen Union. Für Streitigkeiten ist das Gericht am Wohnsitz des Verbrauchers zuständig."
+    },
+    "section11": {
+      "title": "11. Kontakt",
+      "content": "Bei Fragen zu diesen Bedingungen: info@scripe.fabioprivato.org"
+    }
+  },
+  "cookies": {
+    "title": "Cookie-Richtlinie - Scripe",
+    "heading": "Cookie-Richtlinie",
+    "lastUpdated": "Letzte Aktualisierung: Februar 2026",
+    "section1": {
+      "title": "1. Was sind Cookies",
+      "content": "Cookies sind kleine Textdateien, die auf Ihrem Gerät gespeichert werden, wenn Sie eine Website besuchen. Sie dienen dazu, die Website effizient zu betreiben und den Betreibern Informationen bereitzustellen."
+    },
+    "section2": {
+      "title": "2. Von uns verwendete Cookies",
+      "technicalTitle": "Technische Cookies (notwendig)",
+      "technicalContent": "Diese Cookies sind für den Betrieb der Plattform unerlässlich und können nicht deaktiviert werden.",
+      "technicalItems": [
+        "scripe_token - Authentifizierungs-Token zur Aufrechterhaltung der Sitzung (localStorage)"
+      ],
+      "cloudflareTitle": "Cloudflare-Cookies",
+      "cloudflareContent": "Wir verwenden Cloudflare für die Sicherheit und Leistung der Website. Cloudflare kann technische Cookies setzen, die für seinen Betrieb erforderlich sind."
+    },
+    "section3": {
+      "title": "3. Cookies von Drittanbietern",
+      "content": "Wir verwenden keine Tracking-Cookies, Werbe-Cookies oder Analyse-Cookies von Drittanbietern. Wir teilen keine Browserdaten mit Werbenetzwerken."
+    },
+    "section4": {
+      "title": "4. Cookies verwalten",
+      "content": "Sie können Cookies über Ihre Browser-Einstellungen verwalten. Bitte beachten Sie, dass das Deaktivieren technischer Cookies die ordnungsgemäße Funktion der Plattform beeinträchtigen kann, insbesondere die Authentifizierung."
+    },
+    "section5": {
+      "title": "5. Kontakt",
+      "content": "Bei Fragen zu unserer Cookie-Richtlinie: privacy@scripe.fabioprivato.org"
+    }
+  }
+}

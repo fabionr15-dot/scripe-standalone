@@ -1,0 +1,103 @@
+{
+  "newSearch": {
+    "title": "Nouvelle recherche - Scripe",
+    "heading": "Nouvelle recherche",
+    "subtitle": "Trouvez des leads B2B de qualité avec l'intelligence artificielle",
+    "aiMode": "Recherche IA",
+    "manualMode": "Recherche manuelle",
+    "ai": {
+      "label": "Décrivez ce que vous cherchez",
+      "placeholder": "Ex : \"Je cherche des restaurants à Paris, pas de fast food\"",
+      "interpret": "Interpréter avec l'IA",
+      "interpreted": "Requête interprétée",
+      "confidence": "Confiance : {{score}}%",
+      "categories": "Catégories",
+      "location": "Localisation",
+      "exclude": "Exclure"
+    },
+    "manual": {
+      "categories": "Catégories (séparées par des virgules)",
+      "categoriesPlaceholder": "Ex : restaurant, pizzeria, brasserie",
+      "city": "Ville",
+      "cityPlaceholder": "Ex : Paris",
+      "region": "Région",
+      "regionPlaceholder": "Ex : Île-de-France",
+      "estimate": "Calculer l'estimation"
+    },
+    "quality": {
+      "title": "Niveau de qualité",
+      "basic": "Basic 40%",
+      "basicDesc": "Données brutes uniquement, validation du format",
+      "standard": "Standard 60%",
+      "standardDesc": "Vérification téléphone et site web, 4 sources",
+      "premium": "Premium 80%",
+      "premiumDesc": "Analyse complète du site web, vérification approfondie"
+    },
+    "leads": {
+      "title": "Nombre de leads",
+      "count": "{{count}}"
+    },
+    "estimate": {
+      "title": "Estimation de la recherche",
+      "available": "~{{count}} disponibles sur le marché",
+      "leadsToCollect": "Leads à collecter",
+      "minutes": "Minutes",
+      "credits": "Crédits",
+      "yourCredits": "Vos crédits : {{count}}",
+      "insufficientCredits": "Crédits insuffisants",
+      "startSearch": "Lancer la recherche"
+    },
+    "errors": {
+      "interpretFailed": "Erreur lors de l'interprétation de la requête",
+      "estimateFailed": "Erreur lors de l'estimation",
+      "insufficientCredits": "Crédits insuffisants",
+      "createFailed": "Erreur lors de la création de la recherche"
+    },
+    "defaultName": "Recherche {{date}}"
+  },
+  "results": {
+    "notFound": "Recherche non trouvée",
+    "backToSearches": "Retour aux recherches",
+    "running": {
+      "title": "Recherche en cours",
+      "leadsFound": "Leads trouvés",
+      "target": "Objectif",
+      "elapsed": "Temps écoulé",
+      "querying": "Interrogation de",
+      "partialResults": "Résultats partiels ({{count}})",
+      "realTimeUpdate": "Mise à jour en temps réel",
+      "moreResults": "+ {{count}} autres résultats..."
+    },
+    "completed": {
+      "minQuality": "Qualité minimum :",
+      "all": "Tous",
+      "leadsOf": "{{filtered}} sur {{total}} leads",
+      "noLeads": "Aucun lead trouvé",
+      "lowerFilter": "Essayez de baisser le filtre de qualité",
+      "website": "Site web",
+      "phoneVerified": "Tél. vérifié",
+      "sources": "{{count}} sources",
+      "altPhones": "Numéros alternatifs :\n{{phones}}"
+    },
+    "failed": {
+      "title": "Recherche échouée",
+      "description": "Une erreur s'est produite lors du traitement",
+      "retry": "Réessayer"
+    },
+    "statusLabels": {
+      "running": "En cours",
+      "completed": "Terminée",
+      "failed": "Échouée",
+      "pending": "En attente"
+    }
+  },
+  "sourceNames": {
+    "google_places": "Google Places",
+    "google_serp": "Recherche Google",
+    "pagine_gialle": "Pages Jaunes",
+    "official_website": "Sites web",
+    "bing_places": "Bing Places",
+    "validation": "Validation des données",
+    "enrichment": "Enrichissement des données"
+  }
+}

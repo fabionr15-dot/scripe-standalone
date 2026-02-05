@@ -1,0 +1,103 @@
+{
+  "newSearch": {
+    "title": "New search - Scripe",
+    "heading": "New search",
+    "subtitle": "Find quality B2B leads with artificial intelligence",
+    "aiMode": "AI Search",
+    "manualMode": "Manual Search",
+    "ai": {
+      "label": "Describe what you're looking for",
+      "placeholder": "E.g.: \"I'm looking for restaurants in Berlin, no fast food\"",
+      "interpret": "Interpret with AI",
+      "interpreted": "Interpreted query",
+      "confidence": "Confidence: {{score}}%",
+      "categories": "Categories",
+      "location": "Location",
+      "exclude": "Exclude"
+    },
+    "manual": {
+      "categories": "Categories (comma separated)",
+      "categoriesPlaceholder": "E.g.: restaurant, pizzeria, bistro",
+      "city": "City",
+      "cityPlaceholder": "E.g.: Berlin",
+      "region": "Region",
+      "regionPlaceholder": "E.g.: Bavaria",
+      "estimate": "Calculate estimate"
+    },
+    "quality": {
+      "title": "Quality level",
+      "basic": "Basic 40%",
+      "basicDesc": "Raw data only, format validation",
+      "standard": "Standard 60%",
+      "standardDesc": "Phone and website verification, 4 sources",
+      "premium": "Premium 80%",
+      "premiumDesc": "Full website analysis, deep verification"
+    },
+    "leads": {
+      "title": "Number of leads",
+      "count": "{{count}}"
+    },
+    "estimate": {
+      "title": "Search estimate",
+      "available": "~{{count}} available on the market",
+      "leadsToCollect": "Leads to collect",
+      "minutes": "Minutes",
+      "credits": "Credits",
+      "yourCredits": "Your credits: {{count}}",
+      "insufficientCredits": "Insufficient credits",
+      "startSearch": "Start search"
+    },
+    "errors": {
+      "interpretFailed": "Error interpreting the query",
+      "estimateFailed": "Error in estimate",
+      "insufficientCredits": "Insufficient credits",
+      "createFailed": "Error creating the search"
+    },
+    "defaultName": "Search {{date}}"
+  },
+  "results": {
+    "notFound": "Search not found",
+    "backToSearches": "Back to searches",
+    "running": {
+      "title": "Search in progress",
+      "leadsFound": "Leads found",
+      "target": "Target",
+      "elapsed": "Elapsed time",
+      "querying": "Querying",
+      "partialResults": "Partial results ({{count}})",
+      "realTimeUpdate": "Real-time update",
+      "moreResults": "+ {{count}} more results..."
+    },
+    "completed": {
+      "minQuality": "Minimum quality:",
+      "all": "All",
+      "leadsOf": "{{filtered}} of {{total}} leads",
+      "noLeads": "No leads found",
+      "lowerFilter": "Try lowering the quality filter",
+      "website": "Website",
+      "phoneVerified": "Phone verified",
+      "sources": "{{count}} sources",
+      "altPhones": "Alternative numbers:\n{{phones}}"
+    },
+    "failed": {
+      "title": "Search failed",
+      "description": "An error occurred during processing",
+      "retry": "Retry"
+    },
+    "statusLabels": {
+      "running": "Running",
+      "completed": "Completed",
+      "failed": "Failed",
+      "pending": "Pending"
+    }
+  },
+  "sourceNames": {
+    "google_places": "Google Places",
+    "google_serp": "Google Search",
+    "pagine_gialle": "Yellow Pages",
+    "official_website": "Websites",
+    "bing_places": "Bing Places",
+    "validation": "Data validation",
+    "enrichment": "Data enrichment"
+  }
+}

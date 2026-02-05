@@ -1,0 +1,70 @@
+{
+  "dashboard": {
+    "title": "Tableau de bord - Scripe",
+    "greeting": "Bonjour, {{name}} !",
+    "creditsAvailable": "Vous avez {{count}} crédits disponibles",
+    "stats": {
+      "totalSearches": "Recherches totales",
+      "leadsFound": "Leads trouvés",
+      "creditsUsed": "Crédits utilisés",
+      "avgQuality": "Qualité moyenne"
+    },
+    "quickActions": {
+      "newSearch": "Nouvelle recherche",
+      "findLeads": "Trouver des leads avec l'IA",
+      "yourLists": "Vos listes",
+      "manageLists": "Gérer les leads sauvegardés",
+      "buyCredits": "Acheter des crédits",
+      "rechargeAccount": "Recharger votre compte"
+    },
+    "recentSearches": {
+      "title": "Recherches récentes",
+      "viewAll": "Voir tout",
+      "noSearches": "Aucune recherche",
+      "startFirst": "Commencez par créer votre première recherche",
+      "createSearch": "Créer une recherche",
+      "results": "{{count}} résultats"
+    }
+  },
+  "searches": {
+    "title": "Vos recherches - Scripe",
+    "heading": "Vos recherches",
+    "subtitle": "Gérez et consultez vos recherches de leads",
+    "newSearch": "Nouvelle recherche",
+    "filters": {
+      "all": "Toutes",
+      "running": "En cours",
+      "completed": "Terminées"
+    },
+    "noSearches": "Aucune recherche",
+    "noResults": "Aucun résultat",
+    "startFirst": "Commencez par créer votre première recherche",
+    "changeFilters": "Essayez de modifier les filtres",
+    "createSearch": "Créer une recherche",
+    "leads": "{{count}} leads"
+  },
+  "lists": {
+    "title": "Vos listes - Scripe",
+    "heading": "Vos listes",
+    "subtitle": "Organisez et gérez vos leads sauvegardés",
+    "newList": "Nouvelle liste",
+    "noLists": "Aucune liste",
+    "createPrompt": "Créez une liste pour organiser vos leads",
+    "createList": "Créer une liste",
+    "leads": "{{count}} leads",
+    "view": "Voir",
+    "exportCSV": "Exporter CSV",
+    "exportExcel": "Exporter Excel",
+    "delete": "Supprimer",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette liste ?",
+    "modal": {
+      "title": "Nouvelle liste",
+      "nameLabel": "Nom de la liste",
+      "namePlaceholder": "Ex : Leads Paris T1",
+      "descriptionLabel": "Description (optionnelle)",
+      "descriptionPlaceholder": "Décrivez l'objectif de cette liste...",
+      "cancel": "Annuler",
+      "create": "Créer la liste"
+    }
+  }
+}

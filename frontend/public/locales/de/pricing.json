@@ -1,0 +1,50 @@
+{
+  "pricing": {
+    "title": "Preise - Scripe",
+    "heading": "Einfach und transparent",
+    "subtitle": "Zahlen Sie nur, was Sie nutzen. Kein Abo, keine Bindung. Jeder Credit = 1 verifizierter Lead.",
+    "yourCredits": "Ihre Credits:",
+    "mostPopular": "Am beliebtesten",
+    "credits": "{{count}} Credits",
+    "bonusCredits": "+ {{count}} Gratis-Bonus",
+    "perCredit": "€{{price}} pro Credit",
+    "buy": "Kaufen",
+    "purchaseError": "Fehler beim Kauf. Bitte versuchen Sie es erneut.",
+    "features": {
+      "title": "Was jeder Credit beinhaltet",
+      "aiSearch": "Unbegrenzte KI-Suche",
+      "exportExcelCsv": "Excel/CSV-Export",
+      "phoneValidation": "Telefon-Validierung",
+      "emailVerification": "E-Mail MX-Verifizierung",
+      "websiteCrawling": "Website-Crawling",
+      "multiSource": "Multi-Quelle: Google, Bing, Gelbe Seiten"
+    },
+    "faq": {
+      "title": "Häufig gestellte Fragen",
+      "q1": "Wie funktionieren Credits?",
+      "a1": "Jeder Credit ermöglicht Ihnen 1 verifizierten Lead. Die Kosten variieren je nach gewählter Qualitätsstufe: Basic (1 Credit), Standard (2 Credits), Premium (4 Credits).",
+      "q2": "Verfallen Credits?",
+      "a2": "Nein, Credits verfallen nie. Sie können sie jederzeit nutzen.",
+      "q3": "Kann ich eine Rückerstattung erhalten?",
+      "a3": "Wenn Sie nicht zufrieden sind, kontaktieren Sie uns innerhalb von 14 Tagen nach dem Kauf für eine vollständige Rückerstattung ungenutzter Credits.",
+      "q4": "Akzeptieren Sie Firmenrechnungen?",
+      "a4": "Ja, wir stellen Rechnungen für alle Käufe aus. Geben Sie Ihre Firmendaten beim Checkout ein."
+    }
+  },
+  "paymentSuccess": {
+    "title": "Zahlung abgeschlossen - Scripe",
+    "heading": "Zahlung abgeschlossen!",
+    "description": "Ihre Credits wurden Ihrem Konto gutgeschrieben. Sie können sie sofort nutzen.",
+    "updatingBalance": "Guthaben wird aktualisiert...",
+    "startSearch": "Suche starten",
+    "goToDashboard": "Zum Dashboard",
+    "reference": "Referenz:"
+  },
+  "paymentCancel": {
+    "title": "Zahlung abgebrochen - Scripe",
+    "heading": "Zahlung abgebrochen",
+    "description": "Die Zahlung wurde nicht abgeschlossen. Es wurde kein Betrag belastet. Sie können es jederzeit erneut versuchen.",
+    "backToPricing": "Zurück zu den Preisen",
+    "goToDashboard": "Zum Dashboard"
+  }
+}

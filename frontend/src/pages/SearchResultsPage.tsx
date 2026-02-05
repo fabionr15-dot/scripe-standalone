@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
   ArrowLeft,
@@ -19,7 +19,9 @@ import {
   Database,
   Zap,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
+import { LocalizedLink } from '@/i18n/LocalizedLink';
 
 interface Lead {
   id: string;
@@ -74,17 +76,6 @@ interface SearchDetails {
   } | null;
 }
 
-// Source display names
-const SOURCE_NAMES: Record<string, string> = {
-  google_places: 'Google Places',
-  google_serp: 'Google Search',
-  pagine_gialle: 'Pagine Gialle',
-  official_website: 'Siti Web',
-  bing_places: 'Bing Places',
-  validation: 'Validazione dati',
-  enrichment: 'Arricchimento dati',
-};
-
 // Animated dots for loading text
 function LoadingDots() {
   const [dots, setDots] = useState('');
@@ -99,6 +90,7 @@ function LoadingDots() {
 
 export function SearchResultsPage() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation('search');
   const [search, setSearch] = useState<SearchDetails | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [runStatus, setRunStatus] = useState<RunStatus | null>(null);
@@ -249,10 +241,10 @@ export function SearchResultsPage() {
   if (!search) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-xl font-semibold">Ricerca non trovata</h2>
-        <Link to="/searches" className="text-blue-600 hover:underline mt-2 inline-block">
-          Torna alle ricerche
-        </Link>
+        <h2 className="text-xl font-semibold">{t('results.notFound')}</h2>
+        <LocalizedLink to="/searches" className="text-blue-600 hover:underline mt-2 inline-block">
+          {t('results.backToSearches')}
+        </LocalizedLink>
       </div>
     );
   }
@@ -271,12 +263,12 @@ export function SearchResultsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link
+            <LocalizedLink
               to="/searches"
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
-            </Link>
+            </LocalizedLink>
             <div>
               <h1 className="text-2xl font-bold">{search.name}</h1>
               <p className="text-gray-600">{search.query}</p>
@@ -292,9 +284,9 @@ export function SearchResultsPage() {
             {isCompleted && <CheckCircle className="h-5 w-5" />}
             {isFailed && <XCircle className="h-5 w-5" />}
             <span className="font-medium">
-              {isRunning ? 'In corso' :
-               isCompleted ? 'Completata' :
-               isFailed ? 'Fallita' : 'In attesa'}
+              {isRunning ? t('results.statusLabels.running') :
+               isCompleted ? t('results.statusLabels.completed') :
+               isFailed ? t('results.statusLabels.failed') : t('results.statusLabels.pending')}
             </span>
           </div>
         </div>
@@ -309,7 +301,7 @@ export function SearchResultsPage() {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Search className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium text-gray-900">Ricerca in corso</span>
+                    <span className="font-medium text-gray-900">{t('results.running.title')}</span>
                   </div>
                   <span className="text-sm font-medium text-blue-600">
                     {progressPercent}%
@@ -331,14 +323,14 @@ export function SearchResultsPage() {
                 <div className="bg-blue-50 rounded-lg p-4 text-center">
                   <Building2 className="h-5 w-5 mx-auto text-blue-600 mb-1" />
                   <p className="text-2xl font-bold text-blue-700">{resultsFound}</p>
-                  <p className="text-xs text-blue-600">Lead trovati</p>
+                  <p className="text-xs text-blue-600">{t('results.running.leadsFound')}</p>
                 </div>
 
                 {/* Target */}
                 <div className="bg-gray-50 rounded-lg p-4 text-center">
                   <Database className="h-5 w-5 mx-auto text-gray-500 mb-1" />
                   <p className="text-2xl font-bold text-gray-700">{targetCount}</p>
-                  <p className="text-xs text-gray-500">Obiettivo</p>
+                  <p className="text-xs text-gray-500">{t('results.running.target')}</p>
                 </div>
 
                 {/* Time */}
@@ -347,7 +339,7 @@ export function SearchResultsPage() {
                   <p className="text-2xl font-bold text-gray-700">
                     {formatDuration(elapsedSeconds)}
                   </p>
-                  <p className="text-xs text-gray-500">Tempo trascorso</p>
+                  <p className="text-xs text-gray-500">{t('results.running.elapsed')}</p>
                 </div>
               </div>
 
@@ -356,7 +348,7 @@ export function SearchResultsPage() {
                 <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 rounded-lg px-4 py-3">
                   <Zap className="h-4 w-4 text-yellow-500 animate-pulse" />
                   <span>
-                    Interrogando <strong>{SOURCE_NAMES[runStatus.current_source] || runStatus.current_source}</strong>
+                    {t('results.running.querying')} <strong>{t(`sourceNames.${runStatus.current_source}`, { defaultValue: runStatus.current_source })}</strong>
                     <LoadingDots />
                   </span>
                 </div>
@@ -368,9 +360,9 @@ export function SearchResultsPage() {
               <div className="border-t">
                 <div className="px-6 py-3 bg-gray-50 flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
-                    Risultati parziali ({leads.length})
+                    {t('results.running.partialResults', { count: leads.length })}
                   </span>
-                  <span className="text-xs text-gray-500">Aggiornamento in tempo reale</span>
+                  <span className="text-xs text-gray-500">{t('results.running.realTimeUpdate')}</span>
                 </div>
                 <div className="divide-y max-h-[300px] overflow-y-auto">
                   {leads.slice(0, 10).map((lead) => (
@@ -393,7 +385,7 @@ export function SearchResultsPage() {
                   ))}
                   {leads.length > 10 && (
                     <div className="px-6 py-2 text-center text-xs text-gray-400">
-                      + {leads.length - 10} altri risultati...
+                      {t('results.running.moreResults', { count: leads.length - 10 })}
                     </div>
                   )}
                 </div>
@@ -410,20 +402,20 @@ export function SearchResultsPage() {
               <div className="flex items-center gap-4">
                 <Filter className="h-5 w-5 text-gray-500" />
                 <div className="flex items-center gap-2">
-                  <label className="text-sm text-gray-600">Qualità minima:</label>
+                  <label className="text-sm text-gray-600">{t('results.completed.minQuality')}</label>
                   <select
                     value={minQuality}
                     onChange={(e) => setMinQuality(Number(e.target.value))}
                     className="border rounded px-2 py-1 text-sm"
                   >
-                    <option value={0}>Tutti</option>
+                    <option value={0}>{t('results.completed.all')}</option>
                     <option value={40}>40%+</option>
                     <option value={60}>60%+</option>
                     <option value={80}>80%+</option>
                   </select>
                 </div>
                 <span className="text-sm text-gray-500">
-                  {filteredLeads.length} di {leads.length} lead
+                  {t('results.completed.leadsOf', { filtered: filteredLeads.length, total: leads.length })}
                 </span>
               </div>
 
@@ -449,9 +441,9 @@ export function SearchResultsPage() {
             {filteredLeads.length === 0 ? (
               <div className="bg-white rounded-xl border p-12 text-center">
                 <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="font-semibold">Nessun lead trovato</h3>
+                <h3 className="font-semibold">{t('results.completed.noLeads')}</h3>
                 <p className="text-gray-600 mt-1">
-                  Prova ad abbassare il filtro qualità
+                  {t('results.completed.lowerFilter')}
                 </p>
               </div>
             ) : (
@@ -481,7 +473,7 @@ export function SearchResultsPage() {
                                 {lead.alternative_phones && lead.alternative_phones.length > 0 && (
                                   <span
                                     className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-medium cursor-help"
-                                    title={`Numeri alternativi:\n${lead.alternative_phones.join('\n')}`}
+                                    title={t('results.completed.altPhones', { phones: lead.alternative_phones.join('\n') })}
                                   >
                                     +{lead.alternative_phones.length}
                                   </span>
@@ -515,7 +507,7 @@ export function SearchResultsPage() {
                                 className="flex items-center gap-1 text-gray-600 hover:text-blue-600"
                               >
                                 <Globe className="h-4 w-4" />
-                                Sito web
+                                {t('results.completed.website')}
                               </a>
                             )}
                             {(lead.address_line || lead.city) && (
@@ -545,10 +537,10 @@ export function SearchResultsPage() {
                             </span>
                           </div>
                           {lead.phone_validated && (
-                            <span className="text-[10px] text-green-600">Tel. verificato</span>
+                            <span className="text-[10px] text-green-600">{t('results.completed.phoneVerified')}</span>
                           )}
                           {lead.sources_count > 1 && (
-                            <span className="text-[10px] text-blue-600">{lead.sources_count} fonti</span>
+                            <span className="text-[10px] text-blue-600">{t('results.completed.sources', { count: lead.sources_count })}</span>
                           )}
                         </div>
                       </div>
@@ -564,16 +556,16 @@ export function SearchResultsPage() {
         {isFailed && (
           <div className="bg-red-50 rounded-xl p-6 text-center">
             <XCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-            <h3 className="font-semibold text-red-800">Ricerca fallita</h3>
+            <h3 className="font-semibold text-red-800">{t('results.failed.title')}</h3>
             <p className="text-red-600 mt-1">
-              Si è verificato un errore durante l'elaborazione
+              {t('results.failed.description')}
             </p>
-            <Link
+            <LocalizedLink
               to="/searches/new"
               className="inline-block mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
             >
-              Riprova
-            </Link>
+              {t('results.failed.retry')}
+            </LocalizedLink>
           </div>
         )}
       </div>

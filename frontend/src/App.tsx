@@ -1,4 +1,6 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AuthProvider } from './context/AuthContext';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { DashboardLayout } from './components/layout/DashboardLayout';
@@ -17,35 +19,89 @@ import { CookiePolicyPage } from './pages/CookiePolicyPage';
 import { PaymentSuccessPage } from './pages/PaymentSuccessPage';
 import { PaymentCancelPage } from './pages/PaymentCancelPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { HreflangTags } from './i18n/HreflangTags';
+import { SUPPORTED_LANGUAGES, type SupportedLanguage } from './i18n';
+
+/**
+ * Wrapper that reads :lang from URL and syncs it with i18next.
+ */
+function LanguageWrapper({ children }: { children: React.ReactNode }) {
+  const { lang } = useParams<{ lang: string }>();
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    if (lang && SUPPORTED_LANGUAGES.includes(lang as SupportedLanguage)) {
+      if (i18n.language !== lang) {
+        i18n.changeLanguage(lang);
+      }
+      document.documentElement.lang = lang;
+    }
+  }, [lang, i18n]);
+
+  return <>{children}</>;
+}
+
+/**
+ * Detects user language and redirects to /:lang/ preserving the path.
+ */
+function LanguageRedirect() {
+  const { i18n } = useTranslation();
+  const location = useLocation();
+
+  let detectedLang = i18n.language?.slice(0, 2) || 'en';
+  if (!SUPPORTED_LANGUAGES.includes(detectedLang as SupportedLanguage)) {
+    detectedLang = 'en';
+  }
+
+  const path = location.pathname === '/' ? '' : location.pathname;
+  return <Navigate to={`/${detectedLang}${path}`} replace />;
+}
 
 export default function App() {
   return (
     <AuthProvider>
+      <HreflangTags />
       <Routes>
-        {/* Public pages */}
-        <Route element={<PublicLayout />}>
+        {/* Language-prefixed public pages */}
+        <Route path="/:lang" element={<LanguageWrapper><PublicLayout /></LanguageWrapper>}>
           <Route index element={<LandingPage />} />
-          <Route path="/pricing" element={<PricingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/cookies" element={<CookiePolicyPage />} />
+          <Route path="pricing" element={<PricingPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
+          <Route path="privacy" element={<PrivacyPage />} />
+          <Route path="terms" element={<TermsPage />} />
+          <Route path="cookies" element={<CookiePolicyPage />} />
         </Route>
 
-        {/* Protected dashboard */}
-        <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/searches" element={<SearchesPage />} />
-          <Route path="/searches/new" element={<NewSearchPage />} />
-          <Route path="/searches/:id" element={<SearchResultsPage />} />
-          <Route path="/lists" element={<ListsPage />} />
-          <Route path="/payment/success" element={<PaymentSuccessPage />} />
-          <Route path="/payment/cancel" element={<PaymentCancelPage />} />
+        {/* Language-prefixed protected dashboard */}
+        <Route path="/:lang" element={<LanguageWrapper><ProtectedRoute><DashboardLayout /></ProtectedRoute></LanguageWrapper>}>
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="searches" element={<SearchesPage />} />
+          <Route path="searches/new" element={<NewSearchPage />} />
+          <Route path="searches/:id" element={<SearchResultsPage />} />
+          <Route path="lists" element={<ListsPage />} />
+          <Route path="payment/success" element={<PaymentSuccessPage />} />
+          <Route path="payment/cancel" element={<PaymentCancelPage />} />
         </Route>
+
+        {/* Root redirect to detected language */}
+        <Route path="/" element={<LanguageRedirect />} />
+
+        {/* Legacy routes without language prefix — redirect preserving path */}
+        <Route path="/pricing" element={<LanguageRedirect />} />
+        <Route path="/login" element={<LanguageRedirect />} />
+        <Route path="/register" element={<LanguageRedirect />} />
+        <Route path="/dashboard" element={<LanguageRedirect />} />
+        <Route path="/searches" element={<LanguageRedirect />} />
+        <Route path="/searches/*" element={<LanguageRedirect />} />
+        <Route path="/lists" element={<LanguageRedirect />} />
+        <Route path="/privacy" element={<LanguageRedirect />} />
+        <Route path="/terms" element={<LanguageRedirect />} />
+        <Route path="/cookies" element={<LanguageRedirect />} />
+        <Route path="/payment/*" element={<LanguageRedirect />} />
 
         {/* Catch all */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<LanguageRedirect />} />
       </Routes>
     </AuthProvider>
   );

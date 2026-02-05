@@ -1,0 +1,57 @@
+{
+  "nav": {
+    "pricing": "Preise",
+    "login": "Anmelden",
+    "register": "Kostenlos starten"
+  },
+  "footer": {
+    "description": "B2B-Leadgenerierungs-Plattform. Finden Sie verifizierte Geschäftskontakte in Europa.",
+    "product": "Produkt",
+    "pricing": "Preise",
+    "startFree": "Kostenlos starten",
+    "legal": "Rechtliches",
+    "privacy": "Datenschutz",
+    "terms": "AGB",
+    "cookies": "Cookie-Richtlinie",
+    "copyright": "© {{year}} Scripe. Alle Rechte vorbehalten."
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "searches": "Suchen",
+    "newSearch": "Neue Suche",
+    "lists": "Listen",
+    "credits": "Credits",
+    "buyCredits": "Credits kaufen →",
+    "logout": "Abmelden"
+  },
+  "status": {
+    "pending": "Ausstehend",
+    "running": "Läuft",
+    "completed": "Abgeschlossen",
+    "failed": "Fehlgeschlagen"
+  },
+  "actions": {
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "export": "Exportieren",
+    "view": "Anzeigen",
+    "loading": "Laden..."
+  },
+  "countries": {
+    "DE": "Deutschland",
+    "AT": "Österreich",
+    "CH": "Schweiz",
+    "IT": "Italien",
+    "FR": "Frankreich",
+    "ES": "Spanien",
+    "NL": "Niederlande",
+    "BE": "Belgien",
+    "PL": "Polen",
+    "CZ": "Tschechien",
+    "PT": "Portugal",
+    "GB": "Vereinigtes Königreich"
+  },
+  "notSpecified": "Nicht angegeben"
+}

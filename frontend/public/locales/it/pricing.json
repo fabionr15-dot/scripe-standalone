@@ -1,0 +1,50 @@
+{
+  "pricing": {
+    "title": "Prezzi - Scripe",
+    "heading": "Semplice e trasparente",
+    "subtitle": "Paga solo per quello che usi. Nessun abbonamento, nessun vincolo. Ogni credito = 1 lead verificato.",
+    "yourCredits": "I tuoi crediti:",
+    "mostPopular": "Più popolare",
+    "credits": "{{count}} crediti",
+    "bonusCredits": "+ {{count}} bonus gratuiti",
+    "perCredit": "€{{price}} per credito",
+    "buy": "Acquista",
+    "purchaseError": "Errore durante l'acquisto. Riprova.",
+    "features": {
+      "title": "Cosa include ogni credito",
+      "aiSearch": "Ricerca AI illimitata",
+      "exportExcelCsv": "Export Excel/CSV",
+      "phoneValidation": "Validazione telefoni",
+      "emailVerification": "Verifica email MX",
+      "websiteCrawling": "Crawling siti web",
+      "multiSource": "Multi-fonte: Google, Bing, Pagine Gialle"
+    },
+    "faq": {
+      "title": "Domande frequenti",
+      "q1": "Come funzionano i crediti?",
+      "a1": "Ogni credito ti permette di ottenere 1 lead verificato. Il costo varia in base al livello di qualità scelto: Basic (1 credito), Standard (2 crediti), Premium (4 crediti).",
+      "q2": "I crediti scadono?",
+      "a2": "No, i crediti non scadono mai. Puoi usarli quando vuoi.",
+      "q3": "Posso avere un rimborso?",
+      "a3": "Se non sei soddisfatto, contattaci entro 14 giorni dall'acquisto per un rimborso completo dei crediti non utilizzati.",
+      "q4": "Accettate fatturazione aziendale?",
+      "a4": "Sì, emettiamo fattura per tutti gli acquisti. Inserisci i dati della tua azienda durante il checkout."
+    }
+  },
+  "paymentSuccess": {
+    "title": "Pagamento completato - Scripe",
+    "heading": "Pagamento completato!",
+    "description": "I tuoi crediti sono stati aggiunti al tuo account. Puoi iniziare a usarli subito.",
+    "updatingBalance": "Aggiornamento saldo...",
+    "startSearch": "Inizia una ricerca",
+    "goToDashboard": "Vai alla dashboard",
+    "reference": "Riferimento:"
+  },
+  "paymentCancel": {
+    "title": "Pagamento annullato - Scripe",
+    "heading": "Pagamento annullato",
+    "description": "Il pagamento non è stato completato. Non è stato addebitato alcun importo. Puoi riprovare quando vuoi.",
+    "backToPricing": "Torna ai prezzi",
+    "goToDashboard": "Vai alla dashboard"
+  }
+}

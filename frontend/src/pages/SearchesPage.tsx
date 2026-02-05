@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
   Search,
@@ -11,7 +10,9 @@ import {
   Filter,
   Calendar,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
+import { LocalizedLink } from '@/i18n/LocalizedLink';
 
 interface SearchItem {
   id: string;
@@ -25,6 +26,8 @@ interface SearchItem {
 }
 
 export function SearchesPage() {
+  const { t, i18n } = useTranslation('dashboard');
+  const { t: tc } = useTranslation('common');
   const [searches, setSearches] = useState<SearchItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'completed' | 'running'>('all');
@@ -53,10 +56,10 @@ export function SearchesPage() {
   });
 
   const statusConfig = {
-    pending: { label: 'In attesa', icon: Clock, color: 'text-gray-500 bg-gray-100' },
-    running: { label: 'In corso', icon: Clock, color: 'text-blue-500 bg-blue-100' },
-    completed: { label: 'Completata', icon: CheckCircle, color: 'text-green-500 bg-green-100' },
-    failed: { label: 'Fallita', icon: XCircle, color: 'text-red-500 bg-red-100' },
+    pending: { label: tc('status.pending'), icon: Clock, color: 'text-gray-500 bg-gray-100' },
+    running: { label: tc('status.running'), icon: Clock, color: 'text-blue-500 bg-blue-100' },
+    completed: { label: tc('status.completed'), icon: CheckCircle, color: 'text-green-500 bg-green-100' },
+    failed: { label: tc('status.failed'), icon: XCircle, color: 'text-red-500 bg-red-100' },
   };
 
   const tierLabels: Record<string, string> = {
@@ -68,23 +71,23 @@ export function SearchesPage() {
   return (
     <>
       <Helmet>
-        <title>Le tue ricerche - Scripe</title>
+        <title>{t('searches.title')}</title>
       </Helmet>
 
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Le tue ricerche</h1>
-            <p className="text-gray-600">Gestisci e visualizza le tue ricerche lead</p>
+            <h1 className="text-2xl font-bold">{t('searches.heading')}</h1>
+            <p className="text-gray-600">{t('searches.subtitle')}</p>
           </div>
-          <Link
+          <LocalizedLink
             to="/searches/new"
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus className="h-4 w-4" />
-            Nuova ricerca
-          </Link>
+            {t('searches.newSearch')}
+          </LocalizedLink>
         </div>
 
         {/* Filters */}
@@ -92,9 +95,9 @@ export function SearchesPage() {
           <Filter className="h-4 w-4 text-gray-500" />
           <div className="flex bg-gray-100 rounded-lg p-1">
             {[
-              { value: 'all', label: 'Tutte' },
-              { value: 'running', label: 'In corso' },
-              { value: 'completed', label: 'Completate' },
+              { value: 'all', label: t('searches.filters.all') },
+              { value: 'running', label: t('searches.filters.running') },
+              { value: 'completed', label: t('searches.filters.completed') },
             ].map((f) => (
               <button
                 key={f.value}
@@ -114,27 +117,27 @@ export function SearchesPage() {
         {/* List */}
         {isLoading ? (
           <div className="bg-white rounded-xl border p-12 text-center text-gray-500">
-            Caricamento...
+            {tc('actions.loading')}
           </div>
         ) : filteredSearches.length === 0 ? (
           <div className="bg-white rounded-xl border p-12 text-center">
             <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="font-semibold text-gray-900">
-              {filter === 'all' ? 'Nessuna ricerca' : 'Nessun risultato'}
+              {filter === 'all' ? t('searches.noSearches') : t('searches.noResults')}
             </h3>
             <p className="text-gray-600 mt-1">
               {filter === 'all'
-                ? 'Inizia creando la tua prima ricerca'
-                : 'Prova a cambiare i filtri'}
+                ? t('searches.startFirst')
+                : t('searches.changeFilters')}
             </p>
             {filter === 'all' && (
-              <Link
+              <LocalizedLink
                 to="/searches/new"
                 className="inline-flex items-center gap-2 mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Plus className="h-4 w-4" />
-                Crea ricerca
-              </Link>
+                {t('searches.createSearch')}
+              </LocalizedLink>
             )}
           </div>
         ) : (
@@ -143,7 +146,7 @@ export function SearchesPage() {
               const status = statusConfig[search.status];
               const StatusIcon = status.icon;
               return (
-                <Link
+                <LocalizedLink
                   key={search.id}
                   to={`/searches/${search.id}`}
                   className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
@@ -162,7 +165,7 @@ export function SearchesPage() {
 
                   <div className="flex items-center gap-6">
                     <div className="text-right">
-                      <p className="font-medium">{search.results_count} lead</p>
+                      <p className="font-medium">{t('searches.leads', { count: search.results_count })}</p>
                       <p className="text-xs text-gray-500">
                         {tierLabels[search.quality_tier] || search.quality_tier}
                       </p>
@@ -170,7 +173,7 @@ export function SearchesPage() {
 
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <Calendar className="h-4 w-4" />
-                      {new Date(search.created_at).toLocaleDateString('it-IT')}
+                      {new Date(search.created_at).toLocaleDateString(i18n.language)}
                     </div>
 
                     <div
@@ -182,7 +185,7 @@ export function SearchesPage() {
 
                     <ArrowRight className="h-5 w-5 text-gray-400" />
                   </div>
-                </Link>
+                </LocalizedLink>
               );
             })}
           </div>

@@ -1,0 +1,70 @@
+{
+  "dashboard": {
+    "title": "Dashboard - Scripe",
+    "greeting": "Hi, {{name}}!",
+    "creditsAvailable": "You have {{count}} credits available",
+    "stats": {
+      "totalSearches": "Total searches",
+      "leadsFound": "Leads found",
+      "creditsUsed": "Credits used",
+      "avgQuality": "Average quality"
+    },
+    "quickActions": {
+      "newSearch": "New search",
+      "findLeads": "Find new leads with AI",
+      "yourLists": "Your lists",
+      "manageLists": "Manage saved leads",
+      "buyCredits": "Buy credits",
+      "rechargeAccount": "Recharge your account"
+    },
+    "recentSearches": {
+      "title": "Recent searches",
+      "viewAll": "View all",
+      "noSearches": "No searches",
+      "startFirst": "Start by creating your first search",
+      "createSearch": "Create search",
+      "results": "{{count}} results"
+    }
+  },
+  "searches": {
+    "title": "Your searches - Scripe",
+    "heading": "Your searches",
+    "subtitle": "Manage and view your lead searches",
+    "newSearch": "New search",
+    "filters": {
+      "all": "All",
+      "running": "Running",
+      "completed": "Completed"
+    },
+    "noSearches": "No searches",
+    "noResults": "No results",
+    "startFirst": "Start by creating your first search",
+    "changeFilters": "Try changing the filters",
+    "createSearch": "Create search",
+    "leads": "{{count}} leads"
+  },
+  "lists": {
+    "title": "Your lists - Scripe",
+    "heading": "Your lists",
+    "subtitle": "Organize and manage your saved leads",
+    "newList": "New list",
+    "noLists": "No lists",
+    "createPrompt": "Create a list to organize your leads",
+    "createList": "Create list",
+    "leads": "{{count}} leads",
+    "view": "View",
+    "exportCSV": "Export CSV",
+    "exportExcel": "Export Excel",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this list?",
+    "modal": {
+      "title": "New list",
+      "nameLabel": "List name",
+      "namePlaceholder": "E.g.: Milan Leads Q1",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Describe the purpose of this list...",
+      "cancel": "Cancel",
+      "create": "Create list"
+    }
+  }
+}

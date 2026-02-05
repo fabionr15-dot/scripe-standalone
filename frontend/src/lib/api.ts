@@ -32,7 +32,11 @@ class ApiClient {
         if (error.response?.status === 401) {
           localStorage.removeItem('scripe_token');
           localStorage.removeItem('scripe_user');
-          window.location.href = '/login';
+          // Detect current language from URL path for localized redirect
+          const pathLang = window.location.pathname.split('/')[1];
+          const supportedLangs = ['en', 'de', 'it', 'fr'];
+          const lang = supportedLangs.includes(pathLang) ? pathLang : 'en';
+          window.location.href = `/${lang}/login`;
         }
         return Promise.reject(error);
       }

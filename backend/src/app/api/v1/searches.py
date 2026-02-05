@@ -122,7 +122,7 @@ QUALITY_TIER_CONFIG = {
         "validate_email": False,
         "enrich_website": False,
         "time_multiplier": 1.0,
-        "cost_per_lead": 0.05,
+        "cost_per_lead": 0.07,
     },
     QualityTier.STANDARD: {
         "min_score": 0.6,
@@ -131,7 +131,7 @@ QUALITY_TIER_CONFIG = {
         "validate_email": True,  # MX check
         "enrich_website": False,
         "time_multiplier": 2.0,
-        "cost_per_lead": 0.12,
+        "cost_per_lead": 0.16,
     },
     QualityTier.PREMIUM: {
         "min_score": 0.8,
@@ -140,7 +140,7 @@ QUALITY_TIER_CONFIG = {
         "validate_email": True,  # SMTP check
         "enrich_website": True,  # Website crawling + analysis
         "time_multiplier": 4.0,
-        "cost_per_lead": 0.25,
+        "cost_per_lead": 0.33,
     },
 }
 

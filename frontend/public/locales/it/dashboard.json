@@ -1,0 +1,70 @@
+{
+  "dashboard": {
+    "title": "Dashboard - Scripe",
+    "greeting": "Ciao, {{name}}!",
+    "creditsAvailable": "Hai {{count}} crediti disponibili",
+    "stats": {
+      "totalSearches": "Ricerche totali",
+      "leadsFound": "Lead trovati",
+      "creditsUsed": "Crediti utilizzati",
+      "avgQuality": "Qualità media"
+    },
+    "quickActions": {
+      "newSearch": "Nuova ricerca",
+      "findLeads": "Trova nuovi lead con l'AI",
+      "yourLists": "Le tue liste",
+      "manageLists": "Gestisci i lead salvati",
+      "buyCredits": "Acquista crediti",
+      "rechargeAccount": "Ricarica il tuo account"
+    },
+    "recentSearches": {
+      "title": "Ricerche recenti",
+      "viewAll": "Vedi tutte",
+      "noSearches": "Nessuna ricerca",
+      "startFirst": "Inizia creando la tua prima ricerca",
+      "createSearch": "Crea ricerca",
+      "results": "{{count}} risultati"
+    }
+  },
+  "searches": {
+    "title": "Le tue ricerche - Scripe",
+    "heading": "Le tue ricerche",
+    "subtitle": "Gestisci e visualizza le tue ricerche lead",
+    "newSearch": "Nuova ricerca",
+    "filters": {
+      "all": "Tutte",
+      "running": "In corso",
+      "completed": "Completate"
+    },
+    "noSearches": "Nessuna ricerca",
+    "noResults": "Nessun risultato",
+    "startFirst": "Inizia creando la tua prima ricerca",
+    "changeFilters": "Prova a cambiare i filtri",
+    "createSearch": "Crea ricerca",
+    "leads": "{{count}} lead"
+  },
+  "lists": {
+    "title": "Le tue liste - Scripe",
+    "heading": "Le tue liste",
+    "subtitle": "Organizza e gestisci i tuoi lead salvati",
+    "newList": "Nuova lista",
+    "noLists": "Nessuna lista",
+    "createPrompt": "Crea una lista per organizzare i tuoi lead",
+    "createList": "Crea lista",
+    "leads": "{{count}} lead",
+    "view": "Visualizza",
+    "exportCSV": "Export CSV",
+    "exportExcel": "Export Excel",
+    "delete": "Elimina",
+    "confirmDelete": "Sei sicuro di voler eliminare questa lista?",
+    "modal": {
+      "title": "Nuova lista",
+      "nameLabel": "Nome lista",
+      "namePlaceholder": "Es: Lead Milano Q1",
+      "descriptionLabel": "Descrizione (opzionale)",
+      "descriptionPlaceholder": "Descrivi lo scopo di questa lista...",
+      "cancel": "Annulla",
+      "create": "Crea lista"
+    }
+  }
+}

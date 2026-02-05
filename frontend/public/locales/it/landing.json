@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "title": "Scripe - Piattaforma di Lead Generation B2B",
+    "description": "Trova contatti aziendali verificati in Italia e Europa. Genera lead B2B di qualità con validazione telefono ed email."
+  },
+  "hero": {
+    "title": "Trova i tuoi prossimi clienti B2B",
+    "subtitle": "Genera lead aziendali verificati in Italia e Europa. Telefoni validati, email funzionanti, dati sempre aggiornati.",
+    "cta": "Inizia Gratis",
+    "viewPricing": "Vedi Prezzi",
+    "freeCredits": "10 crediti gratis • Nessuna carta richiesta"
+  },
+  "features": {
+    "title": "Tutto ciò che serve per trovare nuovi clienti",
+    "aiSearch": {
+      "title": "Ricerca Intelligente",
+      "description": "Usa il linguaggio naturale per cercare. 'Dentisti a Milano' - noi facciamo il resto."
+    },
+    "multiSource": {
+      "title": "Multi-Fonte",
+      "description": "Cerchiamo su Google, Bing, Pagine Gialle e altre 10+ fonti per massimizzare i risultati."
+    },
+    "verifiedData": {
+      "title": "Dati Verificati",
+      "description": "Ogni telefono e email viene validato. Garantiamo almeno il 60% di dati funzionanti."
+    },
+    "targeting": {
+      "title": "Targeting Preciso",
+      "description": "Filtra per regione, città, categoria. Escludi ciò che non vuoi con un click."
+    },
+    "fastResults": {
+      "title": "Risultati Rapidi",
+      "description": "La maggior parte delle ricerche completa in meno di 5 minuti. Niente attese."
+    },
+    "gdpr": {
+      "title": "GDPR Compliant",
+      "description": "Raccogliamo solo dati pubblici. Piena conformità alle normative privacy."
+    }
+  },
+  "tiers": {
+    "title": "Scegli il livello di qualità",
+    "subtitle": "Più qualità significa più validazione, più fonti e dati più affidabili",
+    "mostPopular": "Più Popolare",
+    "minQuality": "Min. qualità: {{score}}",
+    "perLead": "/lead",
+    "basic": {
+      "features": [
+        "2 fonti dati",
+        "Validazione formato",
+        "Export CSV",
+        "Ideale per campagne di volume"
+      ]
+    },
+    "standard": {
+      "features": [
+        "4 fonti dati",
+        "Validazione MX email",
+        "Arricchimento da sito web",
+        "Export Excel/PDF",
+        "Buon rapporto qualità/prezzo"
+      ]
+    },
+    "premium": {
+      "features": [
+        "Tutte le fonti",
+        "Validazione carrier telefono",
+        "Verifica SMTP email",
+        "Massima qualità",
+        "Per campagne mirate"
+      ]
+    }
+  },
+  "cta": {
+    "title": "Pronto a trovare nuovi clienti?",
+    "subtitle": "Registrati ora e ricevi 10 crediti gratuiti per provare la piattaforma",
+    "button": "Crea Account Gratuito"
+  }
+}

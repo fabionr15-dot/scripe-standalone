@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
   FolderOpen,
@@ -10,7 +9,9 @@ import {
   Trash2,
   MoreVertical,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
+import { LocalizedLink } from '@/i18n/LocalizedLink';
 
 interface SavedList {
   id: string;
@@ -22,6 +23,8 @@ interface SavedList {
 }
 
 export function ListsPage() {
+  const { t, i18n } = useTranslation('dashboard');
+  const { t: tc } = useTranslation('common');
   const [lists, setLists] = useState<SavedList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -62,7 +65,7 @@ export function ListsPage() {
   }
 
   async function handleDeleteList(id: string) {
-    if (!confirm('Sei sicuro di voler eliminare questa lista?')) return;
+    if (!confirm(t('lists.confirmDelete'))) return;
 
     try {
       await api.delete(`/lists/${id}`);
@@ -81,7 +84,7 @@ export function ListsPage() {
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `lista-${id}.${format === 'excel' ? 'xlsx' : 'csv'}`);
+      link.setAttribute('download', `list-${id}.${format === 'excel' ? 'xlsx' : 'csv'}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -93,43 +96,43 @@ export function ListsPage() {
   return (
     <>
       <Helmet>
-        <title>Le tue liste - Scripe</title>
+        <title>{t('lists.title')}</title>
       </Helmet>
 
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Le tue liste</h1>
-            <p className="text-gray-600">Organizza e gestisci i tuoi lead salvati</p>
+            <h1 className="text-2xl font-bold">{t('lists.heading')}</h1>
+            <p className="text-gray-600">{t('lists.subtitle')}</p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus className="h-4 w-4" />
-            Nuova lista
+            {t('lists.newList')}
           </button>
         </div>
 
         {/* Lists */}
         {isLoading ? (
           <div className="bg-white rounded-xl border p-12 text-center text-gray-500">
-            Caricamento...
+            {tc('actions.loading')}
           </div>
         ) : lists.length === 0 ? (
           <div className="bg-white rounded-xl border p-12 text-center">
             <FolderOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="font-semibold text-gray-900">Nessuna lista</h3>
+            <h3 className="font-semibold text-gray-900">{t('lists.noLists')}</h3>
             <p className="text-gray-600 mt-1">
-              Crea una lista per organizzare i tuoi lead
+              {t('lists.createPrompt')}
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
               className="inline-flex items-center gap-2 mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Plus className="h-4 w-4" />
-              Crea lista
+              {t('lists.createList')}
             </button>
           </div>
         ) : (
@@ -164,14 +167,14 @@ export function ListsPage() {
                         className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
                       >
                         <Download className="h-4 w-4" />
-                        Export CSV
+                        {t('lists.exportCSV')}
                       </button>
                       <button
                         onClick={() => handleExportList(list.id, 'excel')}
                         className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
                       >
                         <Download className="h-4 w-4" />
-                        Export Excel
+                        {t('lists.exportExcel')}
                       </button>
                       <hr className="my-1" />
                       <button
@@ -179,7 +182,7 @@ export function ListsPage() {
                         className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                       >
                         <Trash2 className="h-4 w-4" />
-                        Elimina
+                        {t('lists.delete')}
                       </button>
                     </div>
                   </div>
@@ -188,20 +191,20 @@ export function ListsPage() {
                 <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">
                   <div className="flex items-center gap-1">
                     <Building2 className="h-4 w-4" />
-                    {list.leads_count} lead
+                    {t('lists.leads', { count: list.leads_count })}
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    {new Date(list.updated_at).toLocaleDateString('it-IT')}
+                    {new Date(list.updated_at).toLocaleDateString(i18n.language)}
                   </div>
                 </div>
 
-                <Link
+                <LocalizedLink
                   to={`/lists/${list.id}`}
                   className="block mt-4 text-center py-2 border rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
                 >
-                  Visualizza
-                </Link>
+                  {t('lists.view')}
+                </LocalizedLink>
               </div>
             ))}
           </div>
@@ -212,30 +215,30 @@ export function ListsPage() {
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
-            <h2 className="text-xl font-bold mb-4">Nuova lista</h2>
+            <h2 className="text-xl font-bold mb-4">{t('lists.modal.title')}</h2>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Nome lista
+                  {t('lists.modal.nameLabel')}
                 </label>
                 <input
                   type="text"
                   value={newListName}
                   onChange={(e) => setNewListName(e.target.value)}
-                  placeholder="Es: Lead Milano Q1"
+                  placeholder={t('lists.modal.namePlaceholder')}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Descrizione (opzionale)
+                  {t('lists.modal.descriptionLabel')}
                 </label>
                 <textarea
                   value={newListDescription}
                   onChange={(e) => setNewListDescription(e.target.value)}
-                  placeholder="Descrivi lo scopo di questa lista..."
+                  placeholder={t('lists.modal.descriptionPlaceholder')}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 min-h-[80px]"
                 />
               </div>
@@ -246,14 +249,14 @@ export function ListsPage() {
                 onClick={() => setShowCreateModal(false)}
                 className="px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Annulla
+                {t('lists.modal.cancel')}
               </button>
               <button
                 onClick={handleCreateList}
                 disabled={!newListName.trim()}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
-                Crea lista
+                {t('lists.modal.create')}
               </button>
             </div>
           </div>

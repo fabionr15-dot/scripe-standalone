@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "title": "Scripe - B2B-Leadgenerierungs-Plattform",
+    "description": "Finden Sie verifizierte Geschäftskontakte in Europa. Generieren Sie hochwertige B2B-Leads mit Telefon- und E-Mail-Validierung."
+  },
+  "hero": {
+    "title": "Finden Sie Ihre nächsten B2B-Kunden",
+    "subtitle": "Generieren Sie verifizierte Geschäfts-Leads in Europa. Validierte Telefonnummern, funktionierende E-Mails, stets aktuelle Daten.",
+    "cta": "Kostenlos starten",
+    "viewPricing": "Preise ansehen",
+    "freeCredits": "10 kostenlose Credits • Keine Kreditkarte erforderlich"
+  },
+  "features": {
+    "title": "Alles was Sie brauchen, um neue Kunden zu finden",
+    "aiSearch": {
+      "title": "Intelligente Suche",
+      "description": "Nutzen Sie natürliche Sprache. 'Zahnärzte in Berlin' - wir erledigen den Rest."
+    },
+    "multiSource": {
+      "title": "Multi-Quelle",
+      "description": "Wir durchsuchen Google, Bing, Gelbe Seiten und 10+ weitere Quellen für maximale Ergebnisse."
+    },
+    "verifiedData": {
+      "title": "Verifizierte Daten",
+      "description": "Jede Telefonnummer und E-Mail wird validiert. Wir garantieren mindestens 60% funktionierende Daten."
+    },
+    "targeting": {
+      "title": "Präzises Targeting",
+      "description": "Filtern Sie nach Region, Stadt, Kategorie. Schließen Sie aus, was Sie nicht möchten."
+    },
+    "fastResults": {
+      "title": "Schnelle Ergebnisse",
+      "description": "Die meisten Suchen sind in weniger als 5 Minuten abgeschlossen. Kein Warten."
+    },
+    "gdpr": {
+      "title": "DSGVO-konform",
+      "description": "Wir erheben nur öffentliche Daten. Vollständige Einhaltung der Datenschutzvorschriften."
+    }
+  },
+  "tiers": {
+    "title": "Wählen Sie Ihr Qualitätsniveau",
+    "subtitle": "Mehr Qualität bedeutet mehr Validierung, mehr Quellen und zuverlässigere Daten",
+    "mostPopular": "Am beliebtesten",
+    "minQuality": "Min. Qualität: {{score}}",
+    "perLead": "/Lead",
+    "basic": {
+      "features": [
+        "2 Datenquellen",
+        "Format-Validierung",
+        "CSV-Export",
+        "Ideal für Volumenkampagnen"
+      ]
+    },
+    "standard": {
+      "features": [
+        "4 Datenquellen",
+        "E-Mail MX-Validierung",
+        "Website-Anreicherung",
+        "Excel/PDF-Export",
+        "Bestes Preis-Leistungs-Verhältnis"
+      ]
+    },
+    "premium": {
+      "features": [
+        "Alle Quellen",
+        "Telefon-Carrier-Validierung",
+        "SMTP E-Mail-Verifizierung",
+        "Höchste Qualität",
+        "Für gezielte Kampagnen"
+      ]
+    }
+  },
+  "cta": {
+    "title": "Bereit, neue Kunden zu finden?",
+    "subtitle": "Registrieren Sie sich jetzt und erhalten Sie 10 kostenlose Credits zum Testen",
+    "button": "Kostenloses Konto erstellen"
+  }
+}

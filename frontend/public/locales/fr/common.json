@@ -1,0 +1,57 @@
+{
+  "nav": {
+    "pricing": "Tarifs",
+    "login": "Connexion",
+    "register": "Commencer gratuitement"
+  },
+  "footer": {
+    "description": "Plateforme de génération de leads B2B. Trouvez des contacts professionnels vérifiés en Europe.",
+    "product": "Produit",
+    "pricing": "Tarifs",
+    "startFree": "Commencer gratuitement",
+    "legal": "Mentions légales",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "cookies": "Politique des cookies",
+    "copyright": "© {{year}} Scripe. Tous droits réservés."
+  },
+  "sidebar": {
+    "dashboard": "Tableau de bord",
+    "searches": "Recherches",
+    "newSearch": "Nouvelle recherche",
+    "lists": "Listes",
+    "credits": "Crédits",
+    "buyCredits": "Acheter des crédits →",
+    "logout": "Déconnexion"
+  },
+  "status": {
+    "pending": "En attente",
+    "running": "En cours",
+    "completed": "Terminée",
+    "failed": "Échouée"
+  },
+  "actions": {
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "export": "Exporter",
+    "view": "Voir",
+    "loading": "Chargement..."
+  },
+  "countries": {
+    "DE": "Allemagne",
+    "AT": "Autriche",
+    "CH": "Suisse",
+    "IT": "Italie",
+    "FR": "France",
+    "ES": "Espagne",
+    "NL": "Pays-Bas",
+    "BE": "Belgique",
+    "PL": "Pologne",
+    "CZ": "République tchèque",
+    "PT": "Portugal",
+    "GB": "Royaume-Uni"
+  },
+  "notSpecified": "Non spécifié"
+}

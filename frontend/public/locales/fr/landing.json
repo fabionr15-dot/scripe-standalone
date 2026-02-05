@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "title": "Scripe - Plateforme de génération de leads B2B",
+    "description": "Trouvez des contacts professionnels vérifiés en Europe. Générez des leads B2B de qualité avec validation téléphone et e-mail."
+  },
+  "hero": {
+    "title": "Trouvez vos prochains clients B2B",
+    "subtitle": "Générez des leads professionnels vérifiés en Europe. Téléphones validés, e-mails fonctionnels, données toujours à jour.",
+    "cta": "Commencer gratuitement",
+    "viewPricing": "Voir les tarifs",
+    "freeCredits": "10 crédits gratuits • Aucune carte requise"
+  },
+  "features": {
+    "title": "Tout ce qu'il faut pour trouver de nouveaux clients",
+    "aiSearch": {
+      "title": "Recherche intelligente",
+      "description": "Utilisez le langage naturel. 'Dentistes à Paris' - nous faisons le reste."
+    },
+    "multiSource": {
+      "title": "Multi-sources",
+      "description": "Nous cherchons sur Google, Bing, Pages Jaunes et plus de 10 autres sources pour maximiser les résultats."
+    },
+    "verifiedData": {
+      "title": "Données vérifiées",
+      "description": "Chaque téléphone et e-mail est validé. Nous garantissons au moins 60% de données fonctionnelles."
+    },
+    "targeting": {
+      "title": "Ciblage précis",
+      "description": "Filtrez par région, ville, catégorie. Excluez ce que vous ne voulez pas en un clic."
+    },
+    "fastResults": {
+      "title": "Résultats rapides",
+      "description": "La plupart des recherches se terminent en moins de 5 minutes. Pas d'attente."
+    },
+    "gdpr": {
+      "title": "Conforme au RGPD",
+      "description": "Nous ne collectons que des données publiques. Pleine conformité aux réglementations sur la vie privée."
+    }
+  },
+  "tiers": {
+    "title": "Choisissez votre niveau de qualité",
+    "subtitle": "Plus de qualité signifie plus de validation, plus de sources et des données plus fiables",
+    "mostPopular": "Le plus populaire",
+    "minQuality": "Qualité min. : {{score}}",
+    "perLead": "/lead",
+    "basic": {
+      "features": ["2 sources de données", "Validation du format", "Export CSV", "Idéal pour les campagnes de volume"]
+    },
+    "standard": {
+      "features": ["4 sources de données", "Validation MX des e-mails", "Enrichissement via site web", "Export Excel/PDF", "Meilleur rapport qualité/prix"]
+    },
+    "premium": {
+      "features": ["Toutes les sources", "Validation opérateur téléphonique", "Vérification SMTP des e-mails", "Qualité maximale", "Pour les campagnes ciblées"]
+    }
+  },
+  "cta": {
+    "title": "Prêt à trouver de nouveaux clients ?",
+    "subtitle": "Inscrivez-vous maintenant et recevez 10 crédits gratuits pour essayer la plateforme",
+    "button": "Créer un compte gratuit"
+  }
+}

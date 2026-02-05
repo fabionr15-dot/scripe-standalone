@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
   Check,
@@ -10,7 +9,9 @@ import {
   Crown,
   Building,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
+import { useLocalizedNavigate } from '@/i18n/useLocalizedNavigate';
 import { api } from '@/lib/api';
 
 interface CreditPackage {
@@ -29,7 +30,7 @@ const packages: CreditPackage[] = [
     id: 'starter',
     name: 'Starter',
     credits: 100,
-    price: 10,
+    price: 19,
     bonus: 0,
     icon: Sparkles,
     color: 'gray',
@@ -38,7 +39,7 @@ const packages: CreditPackage[] = [
     id: 'growth',
     name: 'Growth',
     credits: 500,
-    price: 40,
+    price: 79,
     bonus: 50,
     popular: true,
     icon: Zap,
@@ -48,7 +49,7 @@ const packages: CreditPackage[] = [
     id: 'scale',
     name: 'Scale',
     credits: 1000,
-    price: 70,
+    price: 129,
     bonus: 150,
     icon: Crown,
     color: 'purple',
@@ -57,7 +58,7 @@ const packages: CreditPackage[] = [
     id: 'enterprise',
     name: 'Enterprise',
     credits: 5000,
-    price: 300,
+    price: 519,
     bonus: 1000,
     icon: Building,
     color: 'green',
@@ -65,8 +66,9 @@ const packages: CreditPackage[] = [
 ];
 
 export function PricingPage() {
-  const navigate = useNavigate();
+  const navigate = useLocalizedNavigate();
   const { user, isAuthenticated } = useAuth();
+  const { t } = useTranslation('pricing');
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -84,13 +86,12 @@ export function PricingPage() {
         package_id: pkg.id,
       });
 
-      // Redirect to Stripe checkout or handle payment
       if (res.data.checkout_url) {
         window.location.href = res.data.checkout_url;
       }
     } catch (err) {
       console.error('Purchase failed:', err);
-      alert('Errore durante l\'acquisto. Riprova.');
+      alert(t('pricing.purchaseError'));
     } finally {
       setIsLoading(false);
       setSelectedPackage(null);
@@ -98,12 +99,12 @@ export function PricingPage() {
   }
 
   const features = [
-    'Ricerca AI illimitata',
-    'Export Excel/CSV',
-    'Validazione telefoni',
-    'Verifica email MX',
-    'Crawling siti web',
-    'Multi-fonte: Google, Bing, Pagine Gialle',
+    t('pricing.features.aiSearch'),
+    t('pricing.features.exportExcelCsv'),
+    t('pricing.features.phoneValidation'),
+    t('pricing.features.emailVerification'),
+    t('pricing.features.websiteCrawling'),
+    t('pricing.features.multiSource'),
   ];
 
   const colorClasses = {
@@ -136,22 +137,21 @@ export function PricingPage() {
   return (
     <>
       <Helmet>
-        <title>Prezzi - Scripe</title>
+        <title>{t('pricing.title')}</title>
       </Helmet>
 
       <div className="py-12">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">
-            Semplice e trasparente
+            {t('pricing.heading')}
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Paga solo per quello che usi. Nessun abbonamento, nessun vincolo.
-            Ogni credito = 1 lead verificato.
+            {t('pricing.subtitle')}
           </p>
           {user && (
             <p className="mt-4 text-lg">
-              I tuoi crediti:{' '}
+              {t('pricing.yourCredits')}{' '}
               <span className="font-bold text-blue-600">
                 {user.credits_balance}
               </span>
@@ -176,7 +176,7 @@ export function PricingPage() {
               >
                 {pkg.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                    Più popolare
+                    {t('pricing.mostPopular')}
                   </div>
                 )}
 
@@ -191,14 +191,14 @@ export function PricingPage() {
                 </div>
 
                 <div className="mt-2 space-y-1">
-                  <p className="text-2xl font-semibold">{pkg.credits} crediti</p>
+                  <p className="text-2xl font-semibold">{t('pricing.credits', { count: pkg.credits })}</p>
                   {pkg.bonus > 0 && (
                     <p className="text-green-600 font-medium">
-                      + {pkg.bonus} bonus gratuiti
+                      {t('pricing.bonusCredits', { count: pkg.bonus })}
                     </p>
                   )}
                   <p className="text-sm text-gray-500">
-                    €{pricePerCredit} per credito
+                    {t('pricing.perCredit', { price: pricePerCredit })}
                   </p>
                 </div>
 
@@ -212,7 +212,7 @@ export function PricingPage() {
                   ) : (
                     <>
                       <CreditCard className="h-5 w-5" />
-                      Acquista
+                      {t('pricing.buy')}
                     </>
                   )}
                 </button>
@@ -224,7 +224,7 @@ export function PricingPage() {
         {/* Features */}
         <div className="mt-16 max-w-3xl mx-auto px-4">
           <h2 className="text-2xl font-bold text-center mb-8">
-            Cosa include ogni credito
+            {t('pricing.features.title')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {features.map((feature, i) => (
@@ -242,37 +242,15 @@ export function PricingPage() {
         {/* FAQ */}
         <div className="mt-16 max-w-2xl mx-auto px-4">
           <h2 className="text-2xl font-bold text-center mb-8">
-            Domande frequenti
+            {t('pricing.faq.title')}
           </h2>
           <div className="space-y-4">
-            <div className="bg-white rounded-lg border p-6">
-              <h3 className="font-semibold">Come funzionano i crediti?</h3>
-              <p className="text-gray-600 mt-2">
-                Ogni credito ti permette di ottenere 1 lead verificato. Il costo
-                varia in base al livello di qualità scelto: Basic (1 credito),
-                Standard (2 crediti), Premium (4 crediti).
-              </p>
-            </div>
-            <div className="bg-white rounded-lg border p-6">
-              <h3 className="font-semibold">I crediti scadono?</h3>
-              <p className="text-gray-600 mt-2">
-                No, i crediti non scadono mai. Puoi usarli quando vuoi.
-              </p>
-            </div>
-            <div className="bg-white rounded-lg border p-6">
-              <h3 className="font-semibold">Posso avere un rimborso?</h3>
-              <p className="text-gray-600 mt-2">
-                Se non sei soddisfatto, contattaci entro 14 giorni dall'acquisto
-                per un rimborso completo dei crediti non utilizzati.
-              </p>
-            </div>
-            <div className="bg-white rounded-lg border p-6">
-              <h3 className="font-semibold">Accettate fatturazione aziendale?</h3>
-              <p className="text-gray-600 mt-2">
-                Sì, emettiamo fattura per tutti gli acquisti. Inserisci i dati
-                della tua azienda durante il checkout.
-              </p>
-            </div>
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="bg-white rounded-lg border p-6">
+                <h3 className="font-semibold">{t(`pricing.faq.q${n}`)}</h3>
+                <p className="text-gray-600 mt-2">{t(`pricing.faq.a${n}`)}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

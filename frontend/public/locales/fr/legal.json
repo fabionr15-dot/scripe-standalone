@@ -1,0 +1,134 @@
+{
+  "privacy": {
+    "title": "Politique de confidentialité - Scripe",
+    "heading": "Politique de confidentialité",
+    "lastUpdated": "Dernière mise à jour : Février 2026",
+    "section1": {
+      "title": "1. Responsable du traitement",
+      "content": "Scripe (\"nous\", \"notre\") s'engage à protéger votre vie privée. Cette notice décrit comment nous collectons, utilisons et protégeons vos données personnelles conformément au Règlement Général sur la Protection des Données (RGPD - Règlement UE 2016/679)."
+    },
+    "section2": {
+      "title": "2. Données que nous collectons",
+      "userDataTitle": "Données fournies par l'utilisateur",
+      "userData": ["Adresse e-mail et nom (inscription au compte)", "Données de facturation (traitées via Stripe)", "Requêtes de recherche et préférences d'utilisation"],
+      "autoDataTitle": "Données collectées automatiquement",
+      "autoData": ["Adresse IP et données techniques du navigateur", "Journaux d'accès et d'utilisation de la plateforme", "Cookies techniques nécessaires au fonctionnement"]
+    },
+    "section3": {
+      "title": "3. Finalité du traitement",
+      "purposes": ["Fourniture du service de génération de leads B2B", "Gestion du compte et des crédits", "Traitement des paiements", "Communications relatives au service", "Amélioration de la plateforme"]
+    },
+    "section4": {
+      "title": "4. Base juridique",
+      "content": "Nous traitons vos données sur la base de : l'exécution du contrat (fourniture du service), le consentement (pour les communications marketing), l'intérêt légitime (amélioration du service et sécurité), l'obligation légale (conservation des données fiscales)."
+    },
+    "section5": {
+      "title": "5. Données professionnelles collectées par le service",
+      "content": "Scripe collecte exclusivement des données professionnelles publiquement disponibles (raison sociale, téléphone professionnel, e-mail professionnel, adresse du siège, site web) à partir de sources publiques telles que Google, Bing et les annuaires professionnels. Nous ne collectons pas de données personnelles de particuliers."
+    },
+    "section6": {
+      "title": "6. Partage des données",
+      "intro": "Vos données ne sont pas vendues à des tiers. Nous partageons des données uniquement avec :",
+      "parties": ["Stripe (traitement des paiements)", "Fournisseur d'hébergement (infrastructure technique)", "Autorités compétentes (si requis par la loi)"]
+    },
+    "section7": {
+      "title": "7. Conservation des données",
+      "content": "Nous conservons les données de votre compte pendant la durée de la relation contractuelle et pour les périodes prévues par la loi (ex. obligations fiscales). Les résultats de recherche sont conservés dans votre compte jusqu'à suppression."
+    },
+    "section8": {
+      "title": "8. Vos droits",
+      "intro": "En vertu du RGPD, vous avez le droit de :",
+      "rights": ["Accéder à vos données personnelles", "Rectifier les données inexactes", "Effacer les données (\"droit à l'oubli\")", "Limiter le traitement", "Portabilité des données", "S'opposer au traitement"],
+      "exercise": "Pour exercer vos droits, contactez-nous à l'adresse e-mail indiquée dans la section contact."
+    },
+    "section9": {
+      "title": "9. Sécurité",
+      "content": "Nous adoptons des mesures techniques et organisationnelles appropriées pour protéger vos données, notamment le chiffrement en transit (HTTPS), le hachage des mots de passe et le contrôle des accès."
+    },
+    "section10": {
+      "title": "10. Contact",
+      "content": "Pour toute question relative à la vie privée ou pour exercer vos droits, contactez-nous à : privacy@scripe.fabioprivato.org"
+    }
+  },
+  "terms": {
+    "title": "Conditions d'utilisation - Scripe",
+    "heading": "Conditions d'utilisation",
+    "lastUpdated": "Dernière mise à jour : Février 2026",
+    "section1": {
+      "title": "1. Acceptation des conditions",
+      "content": "En utilisant Scripe (\"le Service\"), vous acceptez les présentes Conditions d'utilisation. Si vous n'acceptez pas ces conditions, n'utilisez pas le Service."
+    },
+    "section2": {
+      "title": "2. Description du service",
+      "content": "Scripe est une plateforme de génération de leads B2B qui collecte des données professionnelles publiquement disponibles à partir de sources en ligne. Le Service fournit des contacts professionnels vérifiés via un système de crédits."
+    },
+    "section3": {
+      "title": "3. Compte utilisateur",
+      "items": ["Vous devez fournir des informations exactes lors de l'inscription", "Vous êtes responsable de la sécurité de votre compte", "Un compte est personnel et non transférable", "Vous devez avoir au moins 18 ans pour utiliser le Service"]
+    },
+    "section4": {
+      "title": "4. Système de crédits",
+      "items": ["Les crédits sont achetés via les forfaits disponibles", "Chaque recherche consomme des crédits selon le niveau de qualité choisi", "Les crédits achetés n'expirent pas", "Les crédits ne sont pas remboursables, sauf disposition légale contraire", "Les nouveaux utilisateurs reçoivent 10 crédits gratuits de bienvenue"]
+    },
+    "section5": {
+      "title": "5. Utilisation autorisée",
+      "intro": "Vous vous engagez à utiliser le Service uniquement pour :",
+      "allowed": ["La recherche de contacts professionnels à des fins B2B légitimes", "Des communications commerciales conformes à la réglementation en vigueur"],
+      "prohibitedIntro": "Il est interdit de :",
+      "prohibited": ["Utiliser les données pour du spam ou des communications non sollicitées à des particuliers", "Revendre les données obtenues sans autorisation", "Tenter un accès non autorisé au système", "Utiliser le Service pour des activités illégales"]
+    },
+    "section6": {
+      "title": "6. Remboursements",
+      "content": "Vous pouvez demander un remboursement des crédits non utilisés dans les 14 jours suivant l'achat, conformément au droit de la consommation. Les crédits déjà utilisés ne sont pas remboursables."
+    },
+    "section7": {
+      "title": "7. Limitation de responsabilité",
+      "content": "Scripe fournit des données collectées à partir de sources publiques avec la plus grande diligence, mais ne garantit pas l'exhaustivité ou l'exactitude à 100% des données fournies. Le Service est fourni \"en l'état\"."
+    },
+    "section8": {
+      "title": "8. Propriété intellectuelle",
+      "content": "La plateforme Scripe, son code, son design et ses contenus sont protégés par le droit d'auteur. Les données professionnelles fournies peuvent être utilisées par l'utilisateur pour ses propres activités commerciales."
+    },
+    "section9": {
+      "title": "9. Modifications des conditions",
+      "content": "Nous nous réservons le droit de modifier ces conditions. Les modifications seront communiquées par e-mail ou par un avis sur la plateforme. L'utilisation continue du Service après les modifications constitue l'acceptation des nouvelles conditions."
+    },
+    "section10": {
+      "title": "10. Droit applicable",
+      "content": "Les présentes conditions sont régies par le droit de l'Union européenne. Pour tout litige, le tribunal du lieu de résidence du consommateur est compétent."
+    },
+    "section11": {
+      "title": "11. Contact",
+      "content": "Pour toute question sur les présentes conditions : info@scripe.fabioprivato.org"
+    }
+  },
+  "cookies": {
+    "title": "Politique des cookies - Scripe",
+    "heading": "Politique des cookies",
+    "lastUpdated": "Dernière mise à jour : Février 2026",
+    "section1": {
+      "title": "1. Que sont les cookies",
+      "content": "Les cookies sont de petits fichiers texte stockés sur votre appareil lorsque vous visitez un site web. Ils sont utilisés pour faire fonctionner le site efficacement et fournir des informations aux propriétaires du site."
+    },
+    "section2": {
+      "title": "2. Cookies que nous utilisons",
+      "technicalTitle": "Cookies techniques (nécessaires)",
+      "technicalContent": "Ces cookies sont essentiels au fonctionnement de la plateforme et ne peuvent pas être désactivés.",
+      "technicalItems": ["scripe_token - Jeton d'authentification pour maintenir la session active (localStorage)"],
+      "cloudflareTitle": "Cookies Cloudflare",
+      "cloudflareContent": "Nous utilisons Cloudflare pour la sécurité et les performances du site. Cloudflare peut définir des cookies techniques nécessaires à son fonctionnement."
+    },
+    "section3": {
+      "title": "3. Cookies tiers",
+      "content": "Nous n'utilisons pas de cookies de suivi, de cookies publicitaires ou de cookies d'analyse tiers. Nous ne partageons pas les données de navigation avec les réseaux publicitaires."
+    },
+    "section4": {
+      "title": "4. Comment gérer les cookies",
+      "content": "Vous pouvez gérer les cookies via les paramètres de votre navigateur. Veuillez noter que la désactivation des cookies techniques peut empêcher le bon fonctionnement de la plateforme, notamment l'authentification."
+    },
+    "section5": {
+      "title": "5. Contact",
+      "content": "Pour toute question sur notre politique des cookies : privacy@scripe.fabioprivato.org"
+    }
+  }
+}

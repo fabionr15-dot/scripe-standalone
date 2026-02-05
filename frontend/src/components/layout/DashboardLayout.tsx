@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import {
   Database,
   LayoutDashboard,
@@ -9,19 +9,24 @@ import {
   LogOut,
   User,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/searches', label: 'Ricerche', icon: Search },
-  { href: '/searches/new', label: 'Nuova Ricerca', icon: PlusCircle },
-  { href: '/lists', label: 'Liste', icon: FolderOpen },
-];
+import { LocalizedLink } from '@/i18n/LocalizedLink';
+import { LanguageSwitcher } from '@/i18n/LanguageSwitcher';
 
 export function DashboardLayout() {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { t, i18n } = useTranslation('common');
+  const lang = i18n.language?.slice(0, 2) || 'en';
+
+  const navItems = [
+    { href: '/dashboard', label: t('sidebar.dashboard'), icon: LayoutDashboard },
+    { href: '/searches', label: t('sidebar.searches'), icon: Search },
+    { href: '/searches/new', label: t('sidebar.newSearch'), icon: PlusCircle },
+    { href: '/lists', label: t('sidebar.lists'), icon: FolderOpen },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -29,19 +34,19 @@ export function DashboardLayout() {
       <aside className="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 border-r">
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b">
-          <Link to="/dashboard" className="flex items-center gap-2">
+          <LocalizedLink to="/dashboard" className="flex items-center gap-2">
             <Database className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-bold">Scripe</span>
-          </Link>
+          </LocalizedLink>
         </div>
 
         {/* Navigation */}
         <nav className="p-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.href;
+            const isActive = location.pathname === `/${lang}${item.href}`;
             return (
-              <Link
+              <LocalizedLink
                 key={item.href}
                 to={item.href}
                 className={cn(
@@ -53,7 +58,7 @@ export function DashboardLayout() {
               >
                 <Icon className="h-5 w-5" />
                 {item.label}
-              </Link>
+              </LocalizedLink>
             );
           })}
         </nav>
@@ -62,24 +67,27 @@ export function DashboardLayout() {
         <div className="absolute bottom-20 left-0 right-0 px-4">
           <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Crediti</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">{t('sidebar.credits')}</span>
               <CreditCard className="h-4 w-4 text-blue-600" />
             </div>
             <p className="text-2xl font-bold text-blue-600">
               {user?.credits_balance.toFixed(2)}
             </p>
-            <Link
+            <LocalizedLink
               to="/pricing"
               className="text-sm text-blue-600 hover:underline mt-2 block"
             >
-              Acquista crediti →
-            </Link>
+              {t('sidebar.buyCredits')}
+            </LocalizedLink>
           </div>
         </div>
 
-        {/* User menu */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
-          <div className="flex items-center gap-3">
+        {/* Language Switcher + User menu */}
+        <div className="absolute bottom-0 left-0 right-0 border-t">
+          <div className="px-4 pt-3 pb-1 flex justify-end">
+            <LanguageSwitcher />
+          </div>
+          <div className="px-4 pb-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
               <User className="h-5 w-5 text-blue-600" />
             </div>
@@ -90,7 +98,7 @@ export function DashboardLayout() {
             <button
               onClick={logout}
               className="p-2 text-gray-400 hover:text-gray-600"
-              title="Logout"
+              title={t('sidebar.logout')}
             >
               <LogOut className="h-5 w-5" />
             </button>

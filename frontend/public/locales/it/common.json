@@ -1,0 +1,57 @@
+{
+  "nav": {
+    "pricing": "Prezzi",
+    "login": "Accedi",
+    "register": "Inizia Gratis"
+  },
+  "footer": {
+    "description": "Piattaforma di lead generation B2B. Trova contatti aziendali verificati in Italia e Europa.",
+    "product": "Prodotto",
+    "pricing": "Prezzi",
+    "startFree": "Inizia gratis",
+    "legal": "Legale",
+    "privacy": "Privacy Policy",
+    "terms": "Termini di Servizio",
+    "cookies": "Cookie Policy",
+    "copyright": "© {{year}} Scripe. Tutti i diritti riservati."
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "searches": "Ricerche",
+    "newSearch": "Nuova Ricerca",
+    "lists": "Liste",
+    "credits": "Crediti",
+    "buyCredits": "Acquista crediti →",
+    "logout": "Logout"
+  },
+  "status": {
+    "pending": "In attesa",
+    "running": "In corso",
+    "completed": "Completata",
+    "failed": "Fallita"
+  },
+  "actions": {
+    "cancel": "Annulla",
+    "confirm": "Conferma",
+    "save": "Salva",
+    "delete": "Elimina",
+    "export": "Esporta",
+    "view": "Visualizza",
+    "loading": "Caricamento..."
+  },
+  "countries": {
+    "DE": "Germania",
+    "AT": "Austria",
+    "CH": "Svizzera",
+    "IT": "Italia",
+    "FR": "Francia",
+    "ES": "Spagna",
+    "NL": "Paesi Bassi",
+    "BE": "Belgio",
+    "PL": "Polonia",
+    "CZ": "Repubblica Ceca",
+    "PT": "Portogallo",
+    "GB": "Regno Unito"
+  },
+  "notSpecified": "Non specificato"
+}

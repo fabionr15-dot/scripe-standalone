@@ -1,0 +1,70 @@
+{
+  "dashboard": {
+    "title": "Dashboard - Scripe",
+    "greeting": "Hallo, {{name}}!",
+    "creditsAvailable": "Sie haben {{count}} Credits verfügbar",
+    "stats": {
+      "totalSearches": "Suchen gesamt",
+      "leadsFound": "Leads gefunden",
+      "creditsUsed": "Credits verbraucht",
+      "avgQuality": "Durchschn. Qualität"
+    },
+    "quickActions": {
+      "newSearch": "Neue Suche",
+      "findLeads": "Neue Leads mit KI finden",
+      "yourLists": "Ihre Listen",
+      "manageLists": "Gespeicherte Leads verwalten",
+      "buyCredits": "Credits kaufen",
+      "rechargeAccount": "Konto aufladen"
+    },
+    "recentSearches": {
+      "title": "Letzte Suchen",
+      "viewAll": "Alle anzeigen",
+      "noSearches": "Keine Suchen",
+      "startFirst": "Erstellen Sie Ihre erste Suche",
+      "createSearch": "Suche erstellen",
+      "results": "{{count}} Ergebnisse"
+    }
+  },
+  "searches": {
+    "title": "Ihre Suchen - Scripe",
+    "heading": "Ihre Suchen",
+    "subtitle": "Verwalten und anzeigen Ihrer Lead-Suchen",
+    "newSearch": "Neue Suche",
+    "filters": {
+      "all": "Alle",
+      "running": "Laufend",
+      "completed": "Abgeschlossen"
+    },
+    "noSearches": "Keine Suchen",
+    "noResults": "Keine Ergebnisse",
+    "startFirst": "Erstellen Sie Ihre erste Suche",
+    "changeFilters": "Versuchen Sie, die Filter zu ändern",
+    "createSearch": "Suche erstellen",
+    "leads": "{{count}} Leads"
+  },
+  "lists": {
+    "title": "Ihre Listen - Scripe",
+    "heading": "Ihre Listen",
+    "subtitle": "Organisieren und verwalten Sie Ihre gespeicherten Leads",
+    "newList": "Neue Liste",
+    "noLists": "Keine Listen",
+    "createPrompt": "Erstellen Sie eine Liste, um Ihre Leads zu organisieren",
+    "createList": "Liste erstellen",
+    "leads": "{{count}} Leads",
+    "view": "Anzeigen",
+    "exportCSV": "CSV exportieren",
+    "exportExcel": "Excel exportieren",
+    "delete": "Löschen",
+    "confirmDelete": "Sind Sie sicher, dass Sie diese Liste löschen möchten?",
+    "modal": {
+      "title": "Neue Liste",
+      "nameLabel": "Listenname",
+      "namePlaceholder": "z.B.: Berlin Leads Q1",
+      "descriptionLabel": "Beschreibung (optional)",
+      "descriptionPlaceholder": "Beschreiben Sie den Zweck dieser Liste...",
+      "cancel": "Abbrechen",
+      "create": "Liste erstellen"
+    }
+  }
+}

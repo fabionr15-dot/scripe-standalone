@@ -1,0 +1,103 @@
+{
+  "newSearch": {
+    "title": "Nuova ricerca - Scripe",
+    "heading": "Nuova ricerca",
+    "subtitle": "Trova lead B2B di qualità con l'intelligenza artificiale",
+    "aiMode": "Ricerca AI",
+    "manualMode": "Ricerca manuale",
+    "ai": {
+      "label": "Descrivi cosa stai cercando",
+      "placeholder": "Es: \"Cerco ristoranti a Milano, no fast food\"",
+      "interpret": "Interpreta con AI",
+      "interpreted": "Query interpretata",
+      "confidence": "Confidenza: {{score}}%",
+      "categories": "Categorie",
+      "location": "Località",
+      "exclude": "Escludi"
+    },
+    "manual": {
+      "categories": "Categorie (separate da virgola)",
+      "categoriesPlaceholder": "Es: ristorante, pizzeria, trattoria",
+      "city": "Città",
+      "cityPlaceholder": "Es: Milano",
+      "region": "Regione",
+      "regionPlaceholder": "Es: Lombardia",
+      "estimate": "Calcola stima"
+    },
+    "quality": {
+      "title": "Livello di qualità",
+      "basic": "Basic 40%",
+      "basicDesc": "Solo dati grezzi, verifica formato",
+      "standard": "Standard 60%",
+      "standardDesc": "Controllo telefono e sito web, 4 fonti",
+      "premium": "Premium 80%",
+      "premiumDesc": "Analisi completa sito web, verifica profonda"
+    },
+    "leads": {
+      "title": "Numero di lead",
+      "count": "{{count}}"
+    },
+    "estimate": {
+      "title": "Stima della ricerca",
+      "available": "~{{count}} disponibili sul mercato",
+      "leadsToCollect": "Lead da raccogliere",
+      "minutes": "Minuti",
+      "credits": "Crediti",
+      "yourCredits": "I tuoi crediti: {{count}}",
+      "insufficientCredits": "Crediti insufficienti",
+      "startSearch": "Avvia ricerca"
+    },
+    "errors": {
+      "interpretFailed": "Errore nell'interpretazione della query",
+      "estimateFailed": "Errore nella stima",
+      "insufficientCredits": "Crediti insufficienti",
+      "createFailed": "Errore nella creazione della ricerca"
+    },
+    "defaultName": "Ricerca {{date}}"
+  },
+  "results": {
+    "notFound": "Ricerca non trovata",
+    "backToSearches": "Torna alle ricerche",
+    "running": {
+      "title": "Ricerca in corso",
+      "leadsFound": "Lead trovati",
+      "target": "Obiettivo",
+      "elapsed": "Tempo trascorso",
+      "querying": "Interrogando",
+      "partialResults": "Risultati parziali ({{count}})",
+      "realTimeUpdate": "Aggiornamento in tempo reale",
+      "moreResults": "+ {{count}} altri risultati..."
+    },
+    "completed": {
+      "minQuality": "Qualità minima:",
+      "all": "Tutti",
+      "leadsOf": "{{filtered}} di {{total}} lead",
+      "noLeads": "Nessun lead trovato",
+      "lowerFilter": "Prova ad abbassare il filtro qualità",
+      "website": "Sito web",
+      "phoneVerified": "Tel. verificato",
+      "sources": "{{count}} fonti",
+      "altPhones": "Numeri alternativi:\n{{phones}}"
+    },
+    "failed": {
+      "title": "Ricerca fallita",
+      "description": "Si è verificato un errore durante l'elaborazione",
+      "retry": "Riprova"
+    },
+    "statusLabels": {
+      "running": "In corso",
+      "completed": "Completata",
+      "failed": "Fallita",
+      "pending": "In attesa"
+    }
+  },
+  "sourceNames": {
+    "google_places": "Google Places",
+    "google_serp": "Google Search",
+    "pagine_gialle": "Pagine Gialle",
+    "official_website": "Siti Web",
+    "bing_places": "Bing Places",
+    "validation": "Validazione dati",
+    "enrichment": "Arricchimento dati"
+  }
+}

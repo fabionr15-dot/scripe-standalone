@@ -1,0 +1,57 @@
+{
+  "nav": {
+    "pricing": "Pricing",
+    "login": "Sign In",
+    "register": "Start Free"
+  },
+  "footer": {
+    "description": "B2B lead generation platform. Find verified business contacts in Europe.",
+    "product": "Product",
+    "pricing": "Pricing",
+    "startFree": "Start free",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "cookies": "Cookie Policy",
+    "copyright": "© {{year}} Scripe. All rights reserved."
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "searches": "Searches",
+    "newSearch": "New Search",
+    "lists": "Lists",
+    "credits": "Credits",
+    "buyCredits": "Buy credits →",
+    "logout": "Logout"
+  },
+  "status": {
+    "pending": "Pending",
+    "running": "Running",
+    "completed": "Completed",
+    "failed": "Failed"
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "export": "Export",
+    "view": "View",
+    "loading": "Loading..."
+  },
+  "countries": {
+    "DE": "Germany",
+    "AT": "Austria",
+    "CH": "Switzerland",
+    "IT": "Italy",
+    "FR": "France",
+    "ES": "Spain",
+    "NL": "Netherlands",
+    "BE": "Belgium",
+    "PL": "Poland",
+    "CZ": "Czech Republic",
+    "PT": "Portugal",
+    "GB": "United Kingdom"
+  },
+  "notSpecified": "Not specified"
+}

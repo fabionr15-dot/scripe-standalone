@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "title": "Scripe - B2B Lead Generation Platform",
+    "description": "Find verified business contacts in Europe. Generate quality B2B leads with phone and email validation."
+  },
+  "hero": {
+    "title": "Find your next B2B customers",
+    "subtitle": "Generate verified business leads in Europe. Validated phones, working emails, always up-to-date data.",
+    "cta": "Start Free",
+    "viewPricing": "View Pricing",
+    "freeCredits": "10 free credits • No credit card required"
+  },
+  "features": {
+    "title": "Everything you need to find new customers",
+    "aiSearch": {
+      "title": "Smart Search",
+      "description": "Use natural language to search. 'Dentists in Berlin' - we do the rest."
+    },
+    "multiSource": {
+      "title": "Multi-Source",
+      "description": "We search Google, Bing, Yellow Pages and 10+ other sources to maximize results."
+    },
+    "verifiedData": {
+      "title": "Verified Data",
+      "description": "Every phone and email is validated. We guarantee at least 60% working data."
+    },
+    "targeting": {
+      "title": "Precise Targeting",
+      "description": "Filter by region, city, category. Exclude what you don't want with one click."
+    },
+    "fastResults": {
+      "title": "Fast Results",
+      "description": "Most searches complete in less than 5 minutes. No waiting."
+    },
+    "gdpr": {
+      "title": "GDPR Compliant",
+      "description": "We only collect public data. Full compliance with privacy regulations."
+    }
+  },
+  "tiers": {
+    "title": "Choose your quality level",
+    "subtitle": "More quality means more validation, more sources and more reliable data",
+    "mostPopular": "Most Popular",
+    "minQuality": "Min. quality: {{score}}",
+    "perLead": "/lead",
+    "basic": {
+      "features": [
+        "2 data sources",
+        "Format validation",
+        "CSV export",
+        "Ideal for volume campaigns"
+      ]
+    },
+    "standard": {
+      "features": [
+        "4 data sources",
+        "Email MX validation",
+        "Website enrichment",
+        "Excel/PDF export",
+        "Best value for money"
+      ]
+    },
+    "premium": {
+      "features": [
+        "All sources",
+        "Phone carrier validation",
+        "SMTP email verification",
+        "Highest quality",
+        "For targeted campaigns"
+      ]
+    }
+  },
+  "cta": {
+    "title": "Ready to find new customers?",
+    "subtitle": "Sign up now and get 10 free credits to try the platform",
+    "button": "Create Free Account"
+  }
+}

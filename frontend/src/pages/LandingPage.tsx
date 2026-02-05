@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
   Search,
@@ -10,44 +9,45 @@ import {
   Shield,
   Target,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { LocalizedLink } from '@/i18n/LocalizedLink';
 
 export function LandingPage() {
+  const { t } = useTranslation('landing');
+
   return (
     <>
       <Helmet>
-        <title>Scripe - B2B Lead Generation Platform</title>
-        <meta
-          name="description"
-          content="Trova contatti aziendali verificati in Italia e Europa. Genera lead B2B di qualità con validazione telefono ed email."
-        />
+        <title>{t('meta.title')}</title>
+        <meta name="description" content={t('meta.description')} />
       </Helmet>
 
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto text-center max-w-4xl">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-            Trova i tuoi prossimi clienti B2B
+            {t('hero.title')}
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-            Genera lead aziendali verificati in Italia e Europa. Telefoni validati, email funzionanti, dati sempre aggiornati.
+            {t('hero.subtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
+            <LocalizedLink
               to="/register"
               className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
             >
-              Inizia Gratis
+              {t('hero.cta')}
               <ArrowRight className="h-5 w-5" />
-            </Link>
-            <Link
+            </LocalizedLink>
+            <LocalizedLink
               to="/pricing"
               className="inline-flex items-center justify-center gap-2 border-2 border-gray-300 px-8 py-4 rounded-lg text-lg font-semibold hover:border-blue-600 hover:text-blue-600 transition-colors"
             >
-              Vedi Prezzi
-            </Link>
+              {t('hero.viewPricing')}
+            </LocalizedLink>
           </div>
           <p className="mt-4 text-sm text-gray-500">
-            10 crediti gratis • Nessuna carta richiesta
+            {t('hero.freeCredits')}
           </p>
         </div>
       </section>
@@ -56,38 +56,38 @@ export function LandingPage() {
       <section className="py-20 bg-white dark:bg-gray-800">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Tutto ciò che serve per trovare nuovi clienti
+            {t('features.title')}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <FeatureCard
               icon={Search}
-              title="Ricerca Intelligente"
-              description="Usa il linguaggio naturale per cercare. 'Dentisti a Milano' - noi facciamo il resto."
+              title={t('features.aiSearch.title')}
+              description={t('features.aiSearch.description')}
             />
             <FeatureCard
               icon={Globe}
-              title="Multi-Fonte"
-              description="Cerchiamo su Google, Bing, Pagine Gialle e altre 10+ fonti per massimizzare i risultati."
+              title={t('features.multiSource.title')}
+              description={t('features.multiSource.description')}
             />
             <FeatureCard
               icon={Phone}
-              title="Dati Verificati"
-              description="Ogni telefono e email viene validato. Garantiamo almeno il 60% di dati funzionanti."
+              title={t('features.verifiedData.title')}
+              description={t('features.verifiedData.description')}
             />
             <FeatureCard
               icon={Target}
-              title="Targeting Preciso"
-              description="Filtra per regione, città, categoria. Escludi ciò che non vuoi con un click."
+              title={t('features.targeting.title')}
+              description={t('features.targeting.description')}
             />
             <FeatureCard
               icon={Zap}
-              title="Risultati Rapidi"
-              description="La maggior parte delle ricerche completa in meno di 5 minuti. Niente attese."
+              title={t('features.fastResults.title')}
+              description={t('features.fastResults.description')}
             />
             <FeatureCard
               icon={Shield}
-              title="GDPR Compliant"
-              description="Raccogliamo solo dati pubblici. Piena conformità alle normative privacy."
+              title={t('features.gdpr.title')}
+              description={t('features.gdpr.description')}
             />
           </div>
         </div>
@@ -97,47 +97,33 @@ export function LandingPage() {
       <section className="py-20 px-4">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center mb-4">
-            Scegli il livello di qualità
+            {t('tiers.title')}
           </h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            Più qualità significa più validazione, più fonti e dati più affidabili
+            {t('tiers.subtitle')}
           </p>
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <TierCard
+              t={t}
               name="Basic"
               minScore="40%"
-              price="€0.02"
-              features={[
-                "2 fonti dati",
-                "Validazione formato",
-                "Export CSV",
-                "Ideale per campagne di volume",
-              ]}
+              price="€0.07"
+              features={t('tiers.basic.features', { returnObjects: true }) as string[]}
             />
             <TierCard
+              t={t}
               name="Standard"
               minScore="60%"
-              price="€0.05"
+              price="€0.16"
               featured
-              features={[
-                "4 fonti dati",
-                "Validazione MX email",
-                "Arricchimento da sito web",
-                "Export Excel/PDF",
-                "Buon rapporto qualità/prezzo",
-              ]}
+              features={t('tiers.standard.features', { returnObjects: true }) as string[]}
             />
             <TierCard
+              t={t}
               name="Premium"
               minScore="80%"
-              price="€0.10"
-              features={[
-                "Tutte le fonti",
-                "Validazione carrier telefono",
-                "Verifica SMTP email",
-                "Massima qualità",
-                "Per campagne mirate",
-              ]}
+              price="€0.33"
+              features={t('tiers.premium.features', { returnObjects: true }) as string[]}
             />
           </div>
         </div>
@@ -147,18 +133,18 @@ export function LandingPage() {
       <section className="py-20 bg-blue-600">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Pronto a trovare nuovi clienti?
+            {t('cta.title')}
           </h2>
           <p className="text-blue-100 mb-8 max-w-xl mx-auto">
-            Registrati ora e ricevi 10 crediti gratuiti per provare la piattaforma
+            {t('cta.subtitle')}
           </p>
-          <Link
+          <LocalizedLink
             to="/register"
             className="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-colors"
           >
-            Crea Account Gratuito
+            {t('cta.button')}
             <ArrowRight className="h-5 w-5" />
-          </Link>
+          </LocalizedLink>
         </div>
       </section>
     </>
@@ -186,12 +172,14 @@ function FeatureCard({
 }
 
 function TierCard({
+  t,
   name,
   minScore,
   price,
   features,
   featured,
 }: {
+  t: (key: string, options?: any) => string;
   name: string;
   minScore: string;
   price: string;
@@ -208,14 +196,14 @@ function TierCard({
     >
       {featured && (
         <span className="bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
-          Più Popolare
+          {t('tiers.mostPopular')}
         </span>
       )}
       <h3 className="text-2xl font-bold mt-4">{name}</h3>
-      <p className="text-gray-500 mb-4">Min. qualità: {minScore}</p>
+      <p className="text-gray-500 mb-4">{t('tiers.minQuality', { score: minScore })}</p>
       <p className="text-4xl font-bold mb-6">
         {price}
-        <span className="text-lg font-normal text-gray-500">/lead</span>
+        <span className="text-lg font-normal text-gray-500">{t('tiers.perLead')}</span>
       </p>
       <ul className="space-y-3">
         {features.map((feature, i) => (

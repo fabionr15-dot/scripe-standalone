@@ -31,10 +31,10 @@ class CreditService:
 
     # Credit packages for purchase
     CREDIT_PACKAGES = {
-        "starter": {"credits": 100, "price_eur": 15.0, "bonus": 0},
-        "growth": {"credits": 500, "price_eur": 60.0, "bonus": 50},  # 10% bonus
-        "scale": {"credits": 1000, "price_eur": 100.0, "bonus": 150},  # 15% bonus
-        "enterprise": {"credits": 5000, "price_eur": 400.0, "bonus": 1000},  # 20% bonus
+        "starter": {"credits": 100, "price_eur": 19.0, "bonus": 0},
+        "growth": {"credits": 500, "price_eur": 79.0, "bonus": 50},  # 10% bonus
+        "scale": {"credits": 1000, "price_eur": 129.0, "bonus": 150},  # 15% bonus
+        "enterprise": {"credits": 5000, "price_eur": 519.0, "bonus": 1000},  # 20% bonus
     }
 
     def __init__(self):

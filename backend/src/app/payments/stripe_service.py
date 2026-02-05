@@ -14,10 +14,10 @@ credit_service = CreditService()
 
 # Map package IDs to Stripe price metadata
 PACKAGE_METADATA = {
-    "starter": {"credits": 100, "bonus": 0, "price_cents": 1000, "name": "Starter - 100 Crediti"},
-    "growth": {"credits": 500, "bonus": 50, "price_cents": 4000, "name": "Growth - 550 Crediti"},
-    "scale": {"credits": 1000, "bonus": 150, "price_cents": 7000, "name": "Scale - 1.150 Crediti"},
-    "enterprise": {"credits": 5000, "bonus": 1000, "price_cents": 30000, "name": "Enterprise - 6.000 Crediti"},
+    "starter": {"credits": 100, "bonus": 0, "price_cents": 1900, "name": "Starter - 100 Credits"},
+    "growth": {"credits": 500, "bonus": 50, "price_cents": 7900, "name": "Growth - 550 Credits"},
+    "scale": {"credits": 1000, "bonus": 150, "price_cents": 12900, "name": "Scale - 1,150 Credits"},
+    "enterprise": {"credits": 5000, "bonus": 1000, "price_cents": 51900, "name": "Enterprise - 6,000 Credits"},
 }
 
 
