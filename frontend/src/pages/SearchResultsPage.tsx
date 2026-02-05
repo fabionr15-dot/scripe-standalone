@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
@@ -15,6 +15,9 @@ import {
   RefreshCw,
   Star,
   Filter,
+  Search,
+  Database,
+  Zap,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -24,108 +27,174 @@ interface Lead {
   phone: string | null;
   email: string | null;
   website: string | null;
-  address: string | null;
+  address_line: string | null;
   city: string | null;
+  region: string | null;
+  country: string | null;
   category: string | null;
   quality_score: number;
-  source: string;
-  validated: boolean;
+  confidence_score: number;
+}
+
+interface RunStatus {
+  id: number;
+  status: string;
+  progress_percent: number;
+  current_source: string | null;
+  results_found: number;
+  target_count: number;
+  is_active: boolean;
+  started_at: string;
+  ended_at: string | null;
 }
 
 interface SearchDetails {
   id: string;
   name: string;
   query: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: string;
   quality_tier: string;
   results_count: number;
+  target_count: number;
   created_at: string;
   completed_at: string | null;
-  progress?: {
-    current: number;
-    total: number;
-    stage: string;
-  };
+  company_count: number;
+  latest_run: {
+    id: number;
+    status: string;
+    progress_percent: number;
+    found_count: number;
+    started_at: string;
+    ended_at: string | null;
+  } | null;
+}
+
+// Source display names
+const SOURCE_NAMES: Record<string, string> = {
+  google_places: 'Google Places',
+  google_serp: 'Google Search',
+  pagine_gialle: 'Pagine Gialle',
+  official_website: 'Siti Web',
+  bing_places: 'Bing Places',
+};
+
+// Animated dots for loading text
+function LoadingDots() {
+  const [dots, setDots] = useState('');
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots(d => d.length >= 3 ? '' : d + '.');
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+  return <span className="inline-block w-6 text-left">{dots}</span>;
 }
 
 export function SearchResultsPage() {
   const { id } = useParams<{ id: string }>();
   const [search, setSearch] = useState<SearchDetails | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [runStatus, setRunStatus] = useState<RunStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [minQuality, setMinQuality] = useState(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startTimeRef = useRef<number>(Date.now());
 
-  useEffect(() => {
-    loadSearch();
-    return () => {
-      eventSourceRef.current?.close();
-    };
-  }, [id]);
-
-  async function loadSearch() {
+  // Load search details
+  const loadSearch = useCallback(async () => {
     try {
       const res = await api.get(`/searches/${id}`);
       setSearch(res.data);
-
-      if (res.data.status === 'running') {
-        subscribeToProgress();
-      } else if (res.data.status === 'completed') {
-        loadLeads();
-      }
+      return res.data;
     } catch (err) {
       console.error('Failed to load search:', err);
-    } finally {
-      setIsLoading(false);
+      return null;
     }
-  }
+  }, [id]);
 
-  async function loadLeads() {
+  // Load leads
+  const loadLeads = useCallback(async () => {
     try {
       const res = await api.get(`/searches/${id}/companies`);
       setLeads(res.data.items || []);
     } catch (err) {
       console.error('Failed to load leads:', err);
     }
-  }
+  }, [id]);
 
-  function subscribeToProgress() {
-    const token = localStorage.getItem('scripe_token');
-    const url = `${import.meta.env.VITE_API_URL || ''}/api/v1/runs/${id}/stream`;
+  // Poll run status
+  const pollRunStatus = useCallback(async (searchId: string, runId: number) => {
+    try {
+      const res = await api.get(`/searches/${searchId}/runs/${runId}`);
+      setRunStatus(res.data);
 
-    eventSourceRef.current = new EventSource(url);
-
-    eventSourceRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-
-      if (data.type === 'progress') {
-        setSearch((prev) =>
-          prev
-            ? {
-                ...prev,
-                progress: {
-                  current: data.current,
-                  total: data.total,
-                  stage: data.stage,
-                },
-              }
-            : null
-        );
-      } else if (data.type === 'completed') {
-        setSearch((prev) => (prev ? { ...prev, status: 'completed' } : null));
+      // Also load partial leads if any found
+      if (res.data.results_found > 0) {
         loadLeads();
-        eventSourceRef.current?.close();
-      } else if (data.type === 'error') {
-        setSearch((prev) => (prev ? { ...prev, status: 'failed' } : null));
-        eventSourceRef.current?.close();
       }
-    };
 
-    eventSourceRef.current.onerror = () => {
-      eventSourceRef.current?.close();
+      // If completed or failed, stop polling
+      if (res.data.status === 'completed' || res.data.status === 'failed') {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+        // Reload search data and leads
+        loadSearch();
+        loadLeads();
+      }
+    } catch (err) {
+      console.error('Failed to poll run status:', err);
+    }
+  }, [loadSearch, loadLeads]);
+
+  // Initial load
+  useEffect(() => {
+    async function init() {
+      const data = await loadSearch();
+      if (!data) {
+        setIsLoading(false);
+        return;
+      }
+
+      if (data.latest_run && (data.latest_run.status === 'running' || data.status === 'running')) {
+        // Start polling
+        startTimeRef.current = new Date(data.latest_run.started_at).getTime();
+        setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000));
+
+        // Poll every 2 seconds
+        pollingRef.current = setInterval(() => {
+          pollRunStatus(data.id, data.latest_run!.id);
+        }, 2000);
+
+        // Timer every second
+        timerRef.current = setInterval(() => {
+          setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000));
+        }, 1000);
+
+        // Initial poll
+        pollRunStatus(data.id, data.latest_run.id);
+      } else if (data.status === 'completed') {
+        loadLeads();
+      }
+
+      setIsLoading(false);
+    }
+
+    init();
+
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+      if (timerRef.current) clearInterval(timerRef.current);
     };
-  }
+  }, [id]);
 
   async function handleExport(format: 'csv' | 'excel') {
     try {
@@ -147,14 +216,17 @@ export function SearchResultsPage() {
     }
   }
 
-  const filteredLeads = leads.filter((l) => l.quality_score * 100 >= minQuality);
+  function formatDuration(seconds: number): string {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  }
 
-  const statusConfig = {
-    pending: { label: 'In attesa', icon: Clock, color: 'text-gray-500' },
-    running: { label: 'In corso', icon: RefreshCw, color: 'text-blue-500' },
-    completed: { label: 'Completata', icon: CheckCircle, color: 'text-green-500' },
-    failed: { label: 'Fallita', icon: XCircle, color: 'text-red-500' },
-  };
+  const filteredLeads = leads.filter((l) => (l.quality_score || 0) * 100 >= minQuality);
+  const isRunning = search?.status === 'running' || runStatus?.is_active;
+  const isCompleted = search?.status === 'completed' && !runStatus?.is_active;
+  const isFailed = search?.status === 'failed';
 
   if (isLoading) {
     return (
@@ -175,8 +247,9 @@ export function SearchResultsPage() {
     );
   }
 
-  const status = statusConfig[search.status];
-  const StatusIcon = status.icon;
+  const progressPercent = runStatus?.progress_percent ?? search.latest_run?.progress_percent ?? 0;
+  const resultsFound = runStatus?.results_found ?? search.company_count ?? 0;
+  const targetCount = runStatus?.target_count ?? search.target_count ?? 0;
 
   return (
     <>
@@ -184,7 +257,7 @@ export function SearchResultsPage() {
         <title>{search.name} - Scripe</title>
       </Helmet>
 
-      <div className="space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -200,36 +273,127 @@ export function SearchResultsPage() {
             </div>
           </div>
 
-          <div className={`flex items-center gap-2 ${status.color}`}>
-            <StatusIcon
-              className={`h-5 w-5 ${search.status === 'running' ? 'animate-spin' : ''}`}
-            />
-            <span className="font-medium">{status.label}</span>
+          <div className={`flex items-center gap-2 ${
+            isRunning ? 'text-blue-500' :
+            isCompleted ? 'text-green-500' :
+            isFailed ? 'text-red-500' : 'text-gray-500'
+          }`}>
+            {isRunning && <RefreshCw className="h-5 w-5 animate-spin" />}
+            {isCompleted && <CheckCircle className="h-5 w-5" />}
+            {isFailed && <XCircle className="h-5 w-5" />}
+            <span className="font-medium">
+              {isRunning ? 'In corso' :
+               isCompleted ? 'Completata' :
+               isFailed ? 'Fallita' : 'In attesa'}
+            </span>
           </div>
         </div>
 
-        {/* Progress (if running) */}
-        {search.status === 'running' && search.progress && (
-          <div className="bg-blue-50 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-blue-700 font-medium">{search.progress.stage}</span>
-              <span className="text-blue-600 text-sm">
-                {search.progress.current} / {search.progress.total}
-              </span>
+        {/* === RUNNING STATE === */}
+        {isRunning && (
+          <div className="bg-white rounded-xl border overflow-hidden">
+            {/* Progress Header */}
+            <div className="p-6 space-y-5">
+              {/* Main progress bar */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-5 w-5 text-blue-600" />
+                    <span className="font-medium text-gray-900">Ricerca in corso</span>
+                  </div>
+                  <span className="text-sm font-medium text-blue-600">
+                    {progressPercent}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-3">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 relative overflow-hidden"
+                    style={{ width: `${Math.max(progressPercent, 3)}%` }}
+                  >
+                    <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Status cards */}
+              <div className="grid grid-cols-3 gap-4">
+                {/* Found */}
+                <div className="bg-blue-50 rounded-lg p-4 text-center">
+                  <Building2 className="h-5 w-5 mx-auto text-blue-600 mb-1" />
+                  <p className="text-2xl font-bold text-blue-700">{resultsFound}</p>
+                  <p className="text-xs text-blue-600">Lead trovati</p>
+                </div>
+
+                {/* Target */}
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <Database className="h-5 w-5 mx-auto text-gray-500 mb-1" />
+                  <p className="text-2xl font-bold text-gray-700">{targetCount}</p>
+                  <p className="text-xs text-gray-500">Obiettivo</p>
+                </div>
+
+                {/* Time */}
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <Clock className="h-5 w-5 mx-auto text-gray-500 mb-1" />
+                  <p className="text-2xl font-bold text-gray-700">
+                    {formatDuration(elapsedSeconds)}
+                  </p>
+                  <p className="text-xs text-gray-500">Tempo trascorso</p>
+                </div>
+              </div>
+
+              {/* Current source */}
+              {runStatus?.current_source && (
+                <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 rounded-lg px-4 py-3">
+                  <Zap className="h-4 w-4 text-yellow-500 animate-pulse" />
+                  <span>
+                    Interrogando <strong>{SOURCE_NAMES[runStatus.current_source] || runStatus.current_source}</strong>
+                    <LoadingDots />
+                  </span>
+                </div>
+              )}
             </div>
-            <div className="w-full bg-blue-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all"
-                style={{
-                  width: `${(search.progress.current / search.progress.total) * 100}%`,
-                }}
-              />
-            </div>
+
+            {/* Live results preview */}
+            {leads.length > 0 && (
+              <div className="border-t">
+                <div className="px-6 py-3 bg-gray-50 flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">
+                    Risultati parziali ({leads.length})
+                  </span>
+                  <span className="text-xs text-gray-500">Aggiornamento in tempo reale</span>
+                </div>
+                <div className="divide-y max-h-[300px] overflow-y-auto">
+                  {leads.slice(0, 10).map((lead) => (
+                    <div key={lead.id} className="px-6 py-3 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Building2 className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm truncate">{lead.company_name}</p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {[lead.city, lead.region].filter(Boolean).join(', ')}
+                        </p>
+                      </div>
+                      {lead.phone && (
+                        <span className="text-xs text-gray-400 hidden sm:inline">
+                          {lead.phone}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                  {leads.length > 10 && (
+                    <div className="px-6 py-2 text-center text-xs text-gray-400">
+                      + {leads.length - 10} altri risultati...
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Results */}
-        {search.status === 'completed' && (
+        {/* === COMPLETED STATE === */}
+        {isCompleted && (
           <>
             {/* Filters & Export */}
             <div className="flex items-center justify-between bg-white rounded-xl border p-4">
@@ -324,10 +488,10 @@ export function SearchResultsPage() {
                                 Sito web
                               </a>
                             )}
-                            {(lead.address || lead.city) && (
+                            {(lead.address_line || lead.city) && (
                               <span className="flex items-center gap-1 text-gray-600">
                                 <MapPin className="h-4 w-4" />
-                                {[lead.address, lead.city].filter(Boolean).join(', ')}
+                                {[lead.city, lead.region, lead.country].filter(Boolean).join(', ')}
                               </span>
                             )}
                           </div>
@@ -339,24 +503,18 @@ export function SearchResultsPage() {
                           <div className="flex items-center gap-1">
                             <Star
                               className={`h-4 w-4 ${
-                                lead.quality_score >= 0.8
+                                (lead.quality_score || 0) >= 0.8
                                   ? 'text-yellow-500 fill-yellow-500'
-                                  : lead.quality_score >= 0.6
+                                  : (lead.quality_score || 0) >= 0.6
                                   ? 'text-yellow-500'
                                   : 'text-gray-300'
                               }`}
                             />
                             <span className="font-medium">
-                              {Math.round(lead.quality_score * 100)}%
+                              {Math.round((lead.confidence_score || 0) * 100)}%
                             </span>
                           </div>
-                          <p className="text-xs text-gray-500">{lead.source}</p>
                         </div>
-                        {lead.validated && (
-                          <div className="p-1 bg-green-100 rounded">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -366,8 +524,8 @@ export function SearchResultsPage() {
           </>
         )}
 
-        {/* Failed state */}
-        {search.status === 'failed' && (
+        {/* === FAILED STATE === */}
+        {isFailed && (
           <div className="bg-red-50 rounded-xl p-6 text-center">
             <XCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
             <h3 className="font-semibold text-red-800">Ricerca fallita</h3>

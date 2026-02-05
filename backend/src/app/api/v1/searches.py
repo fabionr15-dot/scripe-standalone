@@ -505,14 +505,18 @@ async def get_run_status(
         if not run:
             raise HTTPException(status_code=404, detail="Run not found")
 
-        # Check if still active
+        # Check if still active and merge live data
         is_active = run_id in _active_runs
+        live_data = _active_runs.get(run_id, {})
 
         return {
             "id": run.id,
             "search_id": run.search_id,
-            "status": run.status,
-            "progress_percent": run.progress_percent,
+            "status": live_data.get("status", run.status) if is_active else run.status,
+            "progress_percent": live_data.get("progress_percent", run.progress_percent) if is_active else run.progress_percent,
+            "current_source": live_data.get("current_source") if is_active else None,
+            "results_found": live_data.get("results_found", run.found_count) if is_active else run.found_count,
+            "target_count": live_data.get("target_count", 0) if is_active else run.found_count,
             "current_step": run.current_step,
             "found_count": run.found_count,
             "discarded_count": run.discarded_count,
