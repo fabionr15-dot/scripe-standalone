@@ -165,8 +165,11 @@ export function SearchResultsPage() {
       }
 
       if (data.latest_run && (data.latest_run.status === 'running' || data.status === 'running')) {
-        // Start polling
-        startTimeRef.current = new Date(data.latest_run.started_at).getTime();
+        // Start polling — append Z if no timezone info (backend sends UTC without Z)
+        const startedAt = data.latest_run.started_at.endsWith('Z') || data.latest_run.started_at.includes('+')
+          ? data.latest_run.started_at
+          : data.latest_run.started_at + 'Z';
+        startTimeRef.current = new Date(startedAt).getTime();
         setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000));
 
         // Poll every 2 seconds
