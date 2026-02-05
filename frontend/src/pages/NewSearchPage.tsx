@@ -253,8 +253,12 @@ export function NewSearchPage() {
 
       const res = await api.post('/searches', {
         name: query || `Ricerca ${new Date().toLocaleDateString('it-IT')}`,
-        query: query || manualData.categories,
-        criteria,
+        query: query || criteria.categories?.join(' ') || manualData.categories,
+        country: criteria.country || 'IT',
+        regions: criteria.region ? [criteria.region] : undefined,
+        cities: criteria.city ? [criteria.city] : undefined,
+        keywords_exclude: criteria.keywords_exclude || undefined,
+        target_count: 100,
         quality_tier: qualityTier,
       });
 

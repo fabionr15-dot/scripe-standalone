@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.logging_config import get_logger
-from app.storage.models_v2 import Company, Run, Search, Source
+from app.storage.models import Company, Run, Search, Source
 
 logger = get_logger(__name__)
 

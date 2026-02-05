@@ -8,10 +8,11 @@ from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 
 from app.api.rate_limit import limiter
-from app.api.routes import get_routers
 from app.api.v1.ai import router as ai_router
 from app.api.v1.auth import router as auth_router
+from app.api.v1.dashboard import router as dashboard_router
 from app.api.v1.export import router as export_router
+from app.api.v1.lists import router as lists_router
 from app.api.v1.searches import router as searches_v1_router
 from app.api.v1.sources import router as sources_router
 from app.api.v1.webhooks import router as webhooks_router
@@ -30,6 +31,10 @@ async def lifespan(app: FastAPI):
     logger.info("app_starting", env=settings.env)
 
     # Initialize database tables
+    # NOTE: Drop and recreate for schema migration (fresh platform, no user data)
+    # TODO: Remove this after first deployment and use Alembic for future migrations
+    db.drop_tables()
+    logger.warning("database_tables_dropped_for_schema_migration")
     db.create_tables()
     logger.info("database_tables_created")
 
@@ -90,10 +95,6 @@ def create_app() -> FastAPI:
             content={"detail": "Troppe richieste. Riprova tra poco."},
         )
 
-    # Include legacy routers (v0)
-    for router in get_routers():
-        app.include_router(router, prefix="/api")
-
     # Include v1 API routers
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(ai_router, prefix="/api/v1")
@@ -101,6 +102,8 @@ def create_app() -> FastAPI:
     app.include_router(sources_router, prefix="/api/v1")
     app.include_router(export_router, prefix="/api/v1")
     app.include_router(webhooks_router, prefix="/api/v1")
+    app.include_router(dashboard_router, prefix="/api/v1")
+    app.include_router(lists_router, prefix="/api/v1")
 
     # Health check endpoint
     @app.get("/health")

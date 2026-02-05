@@ -14,7 +14,7 @@ from app.auth.middleware import require_auth
 from app.auth.models import UserAccount, UserSearch
 from app.logging_config import get_logger
 from app.storage.db import db
-from app.storage.models_v2 import Company, Search
+from app.storage.models import Company, Search
 
 logger = get_logger(__name__)
 

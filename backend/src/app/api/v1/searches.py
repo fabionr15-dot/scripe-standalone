@@ -15,7 +15,7 @@ from app.auth.models import UserAccount, UserSearch
 from app.logging_config import get_logger
 from app.sources.manager import SearchCriteria, SearchProgress, get_source_manager
 from app.storage.db import db
-from app.storage.models_v2 import Company, Run, Search
+from app.storage.models import Company, Run, Search
 
 logger = get_logger(__name__)
 
@@ -150,6 +150,64 @@ _active_runs: dict[int, dict[str, Any]] = {}
 # ==================== ENDPOINTS ====================
 
 
+@router.get("")
+async def list_searches(
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    user: UserAccount = Depends(require_auth),
+):
+    """List user's searches with pagination."""
+    with db.session() as session:
+        # Get search IDs owned by this user
+        user_search_ids = (
+            session.query(UserSearch.search_id)
+            .filter(UserSearch.user_id == user.id)
+            .subquery()
+        )
+
+        query = (
+            session.query(Search)
+            .filter(Search.id.in_(user_search_ids))
+            .order_by(Search.created_at.desc())
+        )
+
+        total = query.count()
+        searches = query.offset(offset).limit(limit).all()
+
+        items = []
+        for s in searches:
+            # Get latest run status
+            latest_run = (
+                session.query(Run)
+                .filter(Run.search_id == s.id)
+                .order_by(Run.started_at.desc())
+                .first()
+            )
+
+            company_count = (
+                session.query(Company)
+                .filter(Company.search_id == s.id)
+                .count()
+            )
+
+            status = "created"
+            if latest_run:
+                status = latest_run.status
+
+            items.append({
+                "id": str(s.id),
+                "name": s.name,
+                "query": s.criteria_json.get("query", "") if s.criteria_json else "",
+                "status": status,
+                "quality_tier": s.criteria_json.get("quality_tier", "standard") if s.criteria_json else "standard",
+                "results_count": company_count,
+                "created_at": s.created_at.isoformat(),
+                "completed_at": latest_run.ended_at.isoformat() if latest_run and latest_run.ended_at else None,
+            })
+
+        return {"items": items, "total": total}
+
+
 @router.post("/estimate", response_model=SearchEstimate)
 async def estimate_search(search_data: SearchCreateV1):
     """Estimate search results, time and cost before execution.
@@ -269,13 +327,18 @@ async def get_search(search_id: int, user: UserAccount = Depends(require_auth)):
         ).count()
 
         return {
-            "id": search.id,
+            "id": str(search.id),
             "name": search.name,
+            "query": search.criteria_json.get("query", "") if search.criteria_json else "",
+            "status": latest_run.status if latest_run else "created",
+            "quality_tier": search.criteria_json.get("quality_tier", "standard") if search.criteria_json else "standard",
+            "results_count": company_count,
             "criteria": search.criteria_json,
             "target_count": search.target_count,
             "require_phone": search.require_phone,
             "require_website": search.require_website,
             "created_at": search.created_at.isoformat(),
+            "completed_at": latest_run.ended_at.isoformat() if latest_run and latest_run.ended_at else None,
             "company_count": company_count,
             "latest_run": {
                 "id": latest_run.id,
@@ -519,7 +582,7 @@ async def get_search_companies(
             "page_size": page_size,
             "total_count": total_count,
             "total_pages": (total_count + page_size - 1) // page_size,
-            "companies": [
+            "items": [
                 {
                     "id": c.id,
                     "company_name": c.company_name,
