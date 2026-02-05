@@ -27,8 +27,8 @@ interface RecentSearch {
   id: string;
   name: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
-  resultsCount: number;
-  createdAt: string;
+  results_count: number;
+  created_at: string;
 }
 
 export function DashboardPage() {
@@ -244,13 +244,13 @@ export function DashboardPage() {
                       <div>
                         <h4 className="font-medium">{search.name}</h4>
                         <p className="text-sm text-gray-500">
-                          {new Date(search.createdAt).toLocaleDateString(i18n.language)}
+                          {new Date(search.created_at).toLocaleDateString(i18n.language)}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="text-sm text-gray-600">
-                        {t('dashboard.recentSearches.results', { count: search.resultsCount })}
+                        {t('dashboard.recentSearches.results', { count: search.results_count })}
                       </span>
                       <div className={`flex items-center gap-1 ${status.color}`}>
                         <StatusIcon className="h-4 w-4" />
