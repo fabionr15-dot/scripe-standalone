@@ -495,9 +495,9 @@ export function NewSearchPage() {
             </div>
             <input
               type="range"
-              min={10}
-              max={1000}
-              step={10}
+              min={0}
+              max={10000}
+              step={50}
               value={targetCount}
               onChange={(e) => {
                 const val = parseInt(e.target.value);
@@ -516,11 +516,11 @@ export function NewSearchPage() {
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
             <div className="flex justify-between text-xs text-gray-400">
-              <span>10</span>
-              <span>250</span>
-              <span>500</span>
-              <span>750</span>
-              <span>1.000</span>
+              <span>0</span>
+              <span>2.500</span>
+              <span>5.000</span>
+              <span>7.500</span>
+              <span>10.000</span>
             </div>
           </div>
         )}

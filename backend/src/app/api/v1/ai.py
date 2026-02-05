@@ -70,7 +70,7 @@ class EstimateRequest(BaseModel):
     country: str = "IT"
     regions: list[str] | None = None
     cities: list[str] | None = None
-    target_count: int = Field(default=100, ge=1, le=10000)
+    target_count: int = Field(default=100, ge=0, le=10000)
     quality_tier: str = "standard"
 
 
