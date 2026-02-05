@@ -31,10 +31,6 @@ async def lifespan(app: FastAPI):
     logger.info("app_starting", env=settings.env)
 
     # Initialize database tables
-    # NOTE: Drop and recreate for schema migration (fresh platform, no user data)
-    # TODO: Remove this after first deployment and use Alembic for future migrations
-    db.drop_tables()
-    logger.warning("database_tables_dropped_for_schema_migration")
     db.create_tables()
     logger.info("database_tables_created")
 

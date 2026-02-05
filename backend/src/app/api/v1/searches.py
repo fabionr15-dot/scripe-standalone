@@ -319,7 +319,7 @@ async def get_search(search_id: int, user: UserAccount = Depends(require_auth)):
         # Get latest run
         latest_run = session.query(Run).filter(
             Run.search_id == search_id
-        ).order_by(Run.created_at.desc()).first()
+        ).order_by(Run.started_at.desc()).first()
 
         # Get company count
         company_count = session.query(Company).filter(
