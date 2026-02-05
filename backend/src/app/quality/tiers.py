@@ -196,21 +196,25 @@ def estimate_search_cost(
         region=region,
     )
 
-    # Estimated results is the minimum of target and available
-    estimated_results = min(target_count, estimated_available)
+    # Estimated results: show realistic available count (not capped by target_count)
+    # target_count is only used as the collection limit, not the estimate display
+    estimated_results = estimated_available
+
+    # How many leads we'll actually collect (capped by what's available)
+    leads_to_collect = min(target_count, estimated_available)
 
     # Base time per 100 leads
     base_time_per_100 = 60  # 1 minute per 100 leads base
 
-    # Calculate time based on result count and tier
+    # Calculate time based on leads to collect (not total market)
     sources_to_use = config.max_sources or 5
-    estimated_time = (estimated_results / 100) * base_time_per_100 * config.time_multiplier
+    estimated_time = (leads_to_collect / 100) * base_time_per_100 * config.time_multiplier
 
     # Minimum time of 30 seconds
     estimated_time = max(30, estimated_time)
 
-    # Calculate cost based on actual estimated results
-    estimated_cost = estimated_results * config.cost_per_lead
+    # Calculate cost based on leads to collect
+    estimated_cost = leads_to_collect * config.cost_per_lead
 
     return {
         "target_count": target_count,

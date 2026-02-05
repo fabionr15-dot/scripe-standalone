@@ -199,10 +199,19 @@ export function NewSearchPage() {
             country: manualData.country,
           };
 
+      // Build regions array including country:XX entries for multi-country
+      const allRegions: string[] = [];
+      if (mode === 'ai' && interpreted) {
+        // Send ALL regions (includes "country:XX" entries for multi-country)
+        allRegions.push(...(interpreted.locations.regions || []));
+      } else if (criteria.region) {
+        allRegions.push(criteria.region);
+      }
+
       const res = await api.post('/ai/estimate', {
         query: criteria.categories?.join(' ') || '',
         country: criteria.country || 'IT',
-        regions: criteria.region ? [criteria.region] : [],
+        regions: allRegions,
         cities: criteria.city ? [criteria.city] : [],
         target_count: 100,
         quality_tier: qualityTier,
