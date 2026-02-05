@@ -1,5 +1,7 @@
 """Authentication API v1 endpoints."""
 
+import time
+from collections import defaultdict
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -27,6 +29,39 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # Services
 auth_service = LocalAuthService()
 credit_service = CreditService()
+
+# ==================== ACCOUNT LOCKOUT ====================
+
+# Track failed login attempts: key = email or IP, value = list of timestamps
+_failed_attempts: dict[str, list[float]] = defaultdict(list)
+_LOCKOUT_THRESHOLD = 5       # Max failed attempts before lockout
+_LOCKOUT_WINDOW = 900        # 15 minutes window for counting attempts
+_LOCKOUT_DURATION = 900      # 15 minutes lockout duration
+
+
+def _check_lockout(key: str) -> None:
+    """Check if an account/IP is locked out. Raises 429 if locked."""
+    now = time.time()
+    # Clean up old attempts outside the window
+    _failed_attempts[key] = [
+        t for t in _failed_attempts[key] if now - t < _LOCKOUT_WINDOW
+    ]
+    if len(_failed_attempts[key]) >= _LOCKOUT_THRESHOLD:
+        oldest_in_window = _failed_attempts[key][0]
+        remaining = int(_LOCKOUT_DURATION - (now - oldest_in_window))
+        if remaining > 0:
+            logger.warning("account_locked_out", key=key, remaining_seconds=remaining)
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Too many failed login attempts. Try again in {remaining // 60 + 1} minutes.",
+            )
+        # Lockout expired, clear attempts
+        _failed_attempts[key].clear()
+
+
+def _record_failed_attempt(key: str) -> None:
+    """Record a failed login attempt."""
+    _failed_attempts[key].append(time.time())
 
 
 # ==================== MODELS ====================
@@ -136,13 +171,31 @@ async def login(request: Request, body: LoginRequest):
 
     Returns JWT access token for authentication.
     """
+    # Check lockout for both email and IP
+    email_key = f"email:{body.email.lower()}"
+    ip_key = f"ip:{request.client.host if request.client else 'unknown'}"
+    _check_lockout(email_key)
+    _check_lockout(ip_key)
+
     user = auth_service.authenticate(body.email, body.password)
 
     if not user:
+        # Record failed attempt for both email and IP
+        _record_failed_attempt(email_key)
+        _record_failed_attempt(ip_key)
+        logger.warning(
+            "login_failed",
+            email=body.email,
+            ip=request.client.host if request.client else "unknown",
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
+
+    # Successful login clears failed attempts
+    _failed_attempts.pop(email_key, None)
+    _failed_attempts.pop(ip_key, None)
 
     # Create access token
     token = auth_service.create_access_token(user)
