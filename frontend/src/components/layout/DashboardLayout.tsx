@@ -82,12 +82,9 @@ export function DashboardLayout() {
           </div>
         </div>
 
-        {/* Language Switcher + User menu */}
+        {/* User menu */}
         <div className="absolute bottom-0 left-0 right-0 border-t">
-          <div className="px-4 pt-3 pb-1 flex justify-end">
-            <LanguageSwitcher />
-          </div>
-          <div className="px-4 pb-4 flex items-center gap-3">
+          <div className="px-4 py-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
               <User className="h-5 w-5 text-blue-600" />
             </div>
@@ -108,6 +105,10 @@ export function DashboardLayout() {
 
       {/* Main content */}
       <main className="ml-64 min-h-screen">
+        {/* Top header bar with language switcher */}
+        <div className="h-16 border-b bg-white dark:bg-gray-800 flex items-center justify-end px-8">
+          <LanguageSwitcher />
+        </div>
         <div className="p-8">
           <Outlet />
         </div>
