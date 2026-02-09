@@ -3,9 +3,14 @@
 from app.infra.proxy_manager import get_proxy_manager
 from app.logging_config import get_logger
 from app.sources.bing_places import BingPlacesConnector
+from app.sources.gelbe_seiten import GelbeSeitenScraper
 from app.sources.google_serp import GoogleSerpScraper
+from app.sources.herold_at import HeroldScraper
 from app.sources.manager import get_source_manager
 from app.sources.official_site import OfficialWebsiteCrawler
+from app.sources.overpass_api import OverpassConnector
+from app.sources.pages_jaunes import PagesJaunesScraper
+from app.sources.paginas_amarillas import PaginasAmarillasScraper
 from app.sources.pagine_gialle import PagineGialleScraper
 from app.sources.places import PlacesConnector
 
@@ -37,7 +42,12 @@ def setup_sources(
     else:
         logger.warning("google_places_disabled_no_api_key")
 
-    # 2. Bing Places API (second priority)
+    # 2. Overpass API (OpenStreetMap - free, no API key required)
+    overpass = OverpassConnector()
+    manager.register(overpass)
+    logger.info("registered_overpass_osm")
+
+    # 3. Bing Places API (third priority)
     bing = BingPlacesConnector()
     if bing.api_key:
         manager.register(bing)
@@ -45,19 +55,40 @@ def setup_sources(
     else:
         logger.warning("bing_places_disabled_no_api_key")
 
-    # 3. Google SERP Scraper (requires proxies)
+    # 5. Google SERP Scraper (requires proxies)
     if enable_scrapers:
         serp = GoogleSerpScraper(proxy_manager=proxy_manager)
         manager.register(serp)
         logger.info("registered_google_serp")
 
-    # 4. Pagine Gialle Scraper (Italy only, requires proxies)
+    # 6. Country-specific directory scrapers
     if enable_scrapers:
+        # Italy - Pagine Gialle
         pg = PagineGialleScraper(proxy_manager=proxy_manager)
         manager.register(pg)
         logger.info("registered_pagine_gialle")
 
-    # 5. Official Website Crawler (for enrichment)
+        # Germany - Gelbe Seiten
+        gs = GelbeSeitenScraper(proxy_manager=proxy_manager)
+        manager.register(gs)
+        logger.info("registered_gelbe_seiten")
+
+        # Austria - Herold
+        herold = HeroldScraper(proxy_manager=proxy_manager)
+        manager.register(herold)
+        logger.info("registered_herold_at")
+
+        # France - Pages Jaunes
+        pj = PagesJaunesScraper(proxy_manager=proxy_manager)
+        manager.register(pj)
+        logger.info("registered_pages_jaunes")
+
+        # Spain - Páginas Amarillas
+        pa = PaginasAmarillasScraper(proxy_manager=proxy_manager)
+        manager.register(pa)
+        logger.info("registered_paginas_amarillas")
+
+    # 7. Official Website Crawler (for enrichment)
     website_crawler = OfficialWebsiteCrawler()
     manager.register(website_crawler)
     logger.info("registered_website_crawler")
