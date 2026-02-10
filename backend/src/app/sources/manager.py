@@ -1,13 +1,109 @@
-"""Source Manager - Orchestrates multiple data sources for lead generation."""
+"""Source Manager - Orchestrates multiple data sources for lead generation.
+
+CRITICAL: This manager MUST deliver the exact number of leads requested.
+If customer orders 100 leads → deliver 100
+If customer orders 1,000 leads → deliver 1,000
+If customer orders 30,000 leads → deliver 30,000
+
+Time is not a constraint - quality over speed.
+"""
 
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
 from app.logging_config import get_logger
 from app.sources.base import BaseConnector, SourceResult, SourceType
 
 logger = get_logger(__name__)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CITIES PER COUNTRY - Used to iterate when searching for large quantities
+# ─────────────────────────────────────────────────────────────────────────────
+COUNTRY_CITIES: dict[str, list[str]] = {
+    "IT": [
+        # Major cities (population > 500k)
+        "Milano", "Roma", "Napoli", "Torino", "Palermo", "Genova", "Bologna",
+        "Firenze", "Bari", "Catania", "Venezia", "Verona", "Messina", "Padova",
+        # Large cities (population > 200k)
+        "Trieste", "Brescia", "Parma", "Taranto", "Prato", "Modena", "Reggio Calabria",
+        "Reggio Emilia", "Perugia", "Ravenna", "Livorno", "Cagliari", "Foggia",
+        "Rimini", "Salerno", "Ferrara", "Sassari", "Latina", "Giugliano",
+        # Medium cities (population > 100k)
+        "Monza", "Siracusa", "Pescara", "Bergamo", "Forlì", "Trento", "Vicenza",
+        "Terni", "Bolzano", "Novara", "Piacenza", "Ancona", "Andria", "Arezzo",
+        "Udine", "Cesena", "Lecce", "Pesaro", "Barletta", "Alessandria",
+        "La Spezia", "Pistoia", "Pisa", "Catanzaro", "Lucca", "Como",
+        # Smaller but important cities
+        "Grosseto", "Varese", "Caserta", "Asti", "Ragusa", "Cremona", "Cosenza",
+        "Massa", "Potenza", "Trapani", "Viterbo", "Crotone", "Cuneo", "Benevento",
+        "Avellino", "Matera", "Agrigento", "Teramo", "Pordenone", "Savona",
+    ],
+    "DE": [
+        # Major cities
+        "Berlin", "Hamburg", "München", "Köln", "Frankfurt am Main", "Stuttgart",
+        "Düsseldorf", "Leipzig", "Dortmund", "Essen", "Bremen", "Dresden",
+        "Hannover", "Nürnberg", "Duisburg", "Bochum", "Wuppertal", "Bielefeld",
+        # Large cities
+        "Bonn", "Münster", "Mannheim", "Karlsruhe", "Augsburg", "Wiesbaden",
+        "Mönchengladbach", "Gelsenkirchen", "Aachen", "Braunschweig", "Kiel",
+        "Chemnitz", "Halle", "Magdeburg", "Freiburg", "Krefeld", "Mainz",
+        "Lübeck", "Erfurt", "Oberhausen", "Rostock", "Kassel", "Hagen",
+        # Medium cities
+        "Potsdam", "Saarbrücken", "Hamm", "Ludwigshafen", "Oldenburg", "Mülheim",
+        "Osnabrück", "Leverkusen", "Heidelberg", "Solingen", "Darmstadt",
+        "Herne", "Neuss", "Regensburg", "Paderborn", "Ingolstadt", "Offenbach",
+        "Würzburg", "Fürth", "Ulm", "Heilbronn", "Pforzheim", "Wolfsburg",
+        "Göttingen", "Bottrop", "Reutlingen", "Koblenz", "Bremerhaven",
+        "Remscheid", "Bergisch Gladbach", "Trier", "Jena", "Erlangen",
+    ],
+    "AT": [
+        # Major cities
+        "Wien", "Graz", "Linz", "Salzburg", "Innsbruck",
+        # Other cities
+        "Klagenfurt", "Villach", "Wels", "Sankt Pölten", "Dornbirn",
+        "Wiener Neustadt", "Steyr", "Feldkirch", "Bregenz", "Leonding",
+        "Klosterneuburg", "Baden", "Leoben", "Traun", "Krems an der Donau",
+        "Amstetten", "Lustenau", "Kapfenberg", "Mödling", "Hallein",
+        "Braunau am Inn", "Kufstein", "Schwechat", "Traiskirchen", "Tulln",
+    ],
+    "CH": [
+        # Major cities (German)
+        "Zürich", "Genf", "Basel", "Bern", "Lausanne", "Winterthur",
+        # Other cities
+        "Luzern", "St. Gallen", "Lugano", "Biel", "Thun", "Köniz",
+        "La Chaux-de-Fonds", "Fribourg", "Schaffhausen", "Chur", "Neuchâtel",
+        "Vernier", "Uster", "Sion", "Lancy", "Emmen", "Yverdon-les-Bains",
+        "Zug", "Kriens", "Rapperswil-Jona", "Dübendorf", "Montreux",
+    ],
+    "FR": [
+        # Major cities
+        "Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Strasbourg",
+        "Montpellier", "Bordeaux", "Lille", "Rennes", "Reims", "Saint-Étienne",
+        "Le Havre", "Toulon", "Grenoble", "Dijon", "Angers", "Nîmes", "Villeurbanne",
+        # Large cities
+        "Clermont-Ferrand", "Le Mans", "Aix-en-Provence", "Brest", "Tours",
+        "Amiens", "Limoges", "Annecy", "Perpignan", "Boulogne-Billancourt",
+        "Metz", "Besançon", "Orléans", "Rouen", "Mulhouse", "Caen", "Nancy",
+        "Saint-Denis", "Argenteuil", "Montreuil", "Roubaix", "Tourcoing",
+    ],
+    "ES": [
+        # Major cities
+        "Madrid", "Barcelona", "Valencia", "Sevilla", "Zaragoza", "Málaga",
+        "Murcia", "Palma", "Las Palmas", "Bilbao", "Alicante", "Córdoba",
+        "Valladolid", "Vigo", "Gijón", "L'Hospitalet", "A Coruña", "Vitoria",
+        # Large cities
+        "Granada", "Elche", "Oviedo", "Badalona", "Cartagena", "Terrassa",
+        "Jerez", "Sabadell", "Móstoles", "Santa Cruz", "Pamplona", "Almería",
+        "Alcalá", "Fuenlabrada", "Leganés", "San Sebastián", "Getafe", "Burgos",
+        "Albacete", "Santander", "Castellón", "Alcorcón", "San Cristóbal",
+    ],
+    # Default for countries not specifically listed
+    "default": [
+        "Capital", "City1", "City2", "City3", "City4",
+    ],
+}
 
 
 @dataclass
@@ -32,19 +128,38 @@ class SearchProgress:
     results_found: int
     target_count: int
     current_source: str | None = None
-    errors: list[str] | None = None
+    current_city: str | None = None
+    cities_searched: int = 0
+    total_cities: int = 0
+    errors: list[str] = field(default_factory=list)
 
     @property
     def percent_complete(self) -> int:
-        """Get completion percentage."""
-        if self.total_sources == 0:
-            return 0
-        return int((self.completed_sources / self.total_sources) * 100)
+        """Get completion percentage based on results found vs target."""
+        if self.target_count == 0:
+            return 100
+        return min(100, int((self.results_found / self.target_count) * 100))
 
     @property
     def target_reached(self) -> bool:
         """Check if target count is reached."""
         return self.results_found >= self.target_count
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "total_sources": self.total_sources,
+            "completed_sources": self.completed_sources,
+            "results_found": self.results_found,
+            "target_count": self.target_count,
+            "current_source": self.current_source,
+            "current_city": self.current_city,
+            "cities_searched": self.cities_searched,
+            "total_cities": self.total_cities,
+            "percent_complete": self.percent_complete,
+            "target_reached": self.target_reached,
+            "errors": self.errors,
+        }
 
 
 class SourceManager:
@@ -207,7 +322,15 @@ class SourceManager:
         criteria: SearchCriteria,
         progress_callback: Optional[Callable] = None,
     ) -> list[SourceResult]:
-        """Search sources in priority order, stopping when target reached.
+        """Search sources across ALL cities until target is reached.
+
+        CRITICAL: This method MUST deliver the exact number of leads requested.
+        - If customer orders 100 → deliver 100
+        - If customer orders 1,000 → deliver 1,000
+        - If customer orders 30,000 → deliver 30,000
+
+        The method iterates through all cities in a country, searching each
+        source in each city, until the target count is reached.
 
         Args:
             criteria: Search criteria
@@ -222,11 +345,15 @@ class SourceManager:
             self.logger.warning("no_sources_available", country=criteria.country)
             return []
 
+        # Get cities for the country
+        cities = self._get_cities_for_criteria(criteria)
+
         progress = SearchProgress(
             total_sources=len(sources),
             completed_sources=0,
             results_found=0,
             target_count=criteria.target_count,
+            total_cities=len(cities),
         )
 
         self.logger.info(
@@ -234,43 +361,170 @@ class SourceManager:
             query=criteria.query,
             country=criteria.country,
             target=criteria.target_count,
+            cities_count=len(cities),
             sources=[s.source_name for s in sources],
         )
 
         all_results: list[SourceResult] = []
+        seen_companies: set[str] = set()  # Deduplicate by company name
 
-        for source in sources:
+        # MAIN LOOP: Iterate through cities until target reached
+        for city_index, city in enumerate(cities):
             if progress.target_reached:
                 self.logger.info(
                     "target_reached",
                     results=progress.results_found,
                     target=criteria.target_count,
+                    city=city,
                 )
                 break
 
-            # How many more do we need?
-            remaining = criteria.target_count - len(all_results)
+            progress.current_city = city
+            progress.cities_searched = city_index + 1
 
-            results = await self._search_source(
-                source, criteria, progress, progress_callback, limit=remaining * 2
+            self.logger.debug(
+                "searching_city",
+                city=city,
+                city_index=city_index + 1,
+                total_cities=len(cities),
+                results_so_far=len(all_results),
             )
 
-            if results:
-                all_results.extend(results)
+            # Search all sources for this city
+            for source in sources:
+                if progress.target_reached:
+                    break
+
+                # How many more do we need?
+                remaining = criteria.target_count - len(all_results)
+
+                results = await self._search_source_for_city(
+                    source=source,
+                    query=criteria.query,
+                    city=city,
+                    country=criteria.country,
+                    limit=min(remaining * 2, 100),  # Get up to 2x what we need, max 100 per source/city
+                    progress=progress,
+                    progress_callback=progress_callback,
+                )
+
+                # Add results, deduplicating by company name
+                for result in results:
+                    company_key = result.company_name.lower().strip()
+                    if company_key not in seen_companies:
+                        seen_companies.add(company_key)
+                        all_results.append(result)
+
                 progress.results_found = len(all_results)
 
-            progress.completed_sources += 1
+                if progress_callback:
+                    progress_callback(progress)
 
-            if progress_callback:
-                progress_callback(progress)
+            # Log progress after each city
+            if (city_index + 1) % 5 == 0:
+                self.logger.info(
+                    "search_progress",
+                    cities_searched=city_index + 1,
+                    total_cities=len(cities),
+                    results_found=len(all_results),
+                    target=criteria.target_count,
+                    percent_complete=progress.percent_complete,
+                )
 
         self.logger.info(
             "search_cascade_completed",
             total_results=len(all_results),
-            sources_queried=progress.completed_sources,
+            cities_searched=progress.cities_searched,
+            target=criteria.target_count,
+            target_reached=progress.target_reached,
         )
 
         return all_results[:criteria.target_count]
+
+    def _get_cities_for_criteria(self, criteria: SearchCriteria) -> list[str]:
+        """Get list of cities to search based on criteria.
+
+        If user specified cities/regions, use those.
+        Otherwise, return all cities for the country.
+
+        Args:
+            criteria: Search criteria
+
+        Returns:
+            List of cities to search
+        """
+        # User specified specific cities
+        if criteria.cities and len(criteria.cities) > 0:
+            return criteria.cities
+
+        # User specified specific regions (treat as cities for search)
+        if criteria.regions and len(criteria.regions) > 0:
+            return criteria.regions
+
+        # Get all cities for the country
+        country = criteria.country.upper()
+        if country in COUNTRY_CITIES:
+            return COUNTRY_CITIES[country]
+
+        # Fallback to default cities
+        self.logger.warning(
+            "no_cities_for_country",
+            country=country,
+            using_default=True,
+        )
+        return COUNTRY_CITIES.get("default", [""])
+
+    async def _search_source_for_city(
+        self,
+        source: BaseConnector,
+        query: str,
+        city: str,
+        country: str,
+        limit: int,
+        progress: SearchProgress,
+        progress_callback: Optional[Callable] = None,
+    ) -> list[SourceResult]:
+        """Search a single source for a specific city.
+
+        Args:
+            source: Source to search
+            query: Search query
+            city: City to search
+            country: Country code
+            limit: Max results
+            progress: Progress tracker
+            progress_callback: Optional callback
+
+        Returns:
+            Results from source
+        """
+        progress.current_source = source.source_name
+
+        if progress_callback:
+            progress_callback(progress)
+
+        try:
+            results = await source.search(
+                query=query,
+                region=city,
+                limit=limit,
+            )
+
+            self.logger.debug(
+                "source_search_result",
+                source=source.source_name,
+                city=city,
+                results=len(results),
+            )
+
+            source.mark_healthy()
+            return results
+
+        except Exception as e:
+            source.mark_unhealthy(str(e))
+            source.log_error("search", e)
+            progress.errors.append(f"{source.source_name} ({city}): {str(e)}")
+            return []
 
     async def _search_source(
         self,
@@ -280,7 +534,10 @@ class SourceManager:
         progress_callback: Optional[Callable] = None,
         limit: int | None = None,
     ) -> list[SourceResult]:
-        """Search a single source.
+        """Search a single source across ALL cities.
+
+        This is used by search_all() for parallel search.
+        It iterates through all cities until the limit is reached.
 
         Args:
             source: Source to search
@@ -297,30 +554,34 @@ class SourceManager:
         if progress_callback:
             progress_callback(progress)
 
-        try:
-            # Build region filter
-            region = None
-            if criteria.regions:
-                region = criteria.regions[0]  # Use first region
-            elif criteria.cities:
-                region = criteria.cities[0]  # Use first city
+        all_results: list[SourceResult] = []
+        cities = self._get_cities_for_criteria(criteria)
+        max_results = limit or source.config.max_results_per_query
 
-            results = await source.search(
-                query=criteria.query,
-                region=region,
-                limit=limit or source.config.max_results_per_query,
-            )
+        try:
+            for city in cities:
+                if len(all_results) >= max_results:
+                    break
+
+                remaining = max_results - len(all_results)
+
+                results = await source.search(
+                    query=criteria.query,
+                    region=city,
+                    limit=min(remaining, 100),
+                )
+
+                if results:
+                    all_results.extend(results)
 
             source.mark_healthy()
-            return results
+            return all_results[:max_results]
 
         except Exception as e:
             source.mark_unhealthy(str(e))
             source.log_error("search", e)
-            if progress.errors is None:
-                progress.errors = []
             progress.errors.append(f"{source.source_name}: {str(e)}")
-            return []
+            return all_results  # Return what we got so far
 
     async def health_check_all(self) -> dict[str, bool]:
         """Check health of all sources.
