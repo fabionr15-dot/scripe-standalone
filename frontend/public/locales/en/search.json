@@ -7,13 +7,22 @@
     "manualMode": "Manual Search",
     "ai": {
       "label": "Describe what you're looking for",
-      "placeholder": "E.g.: \"I'm looking for restaurants in Berlin, no fast food\"",
+      "placeholder": "E.g.: \"I'm looking for restaurants in Germany, Austria and Switzerland, no fast food, using SAP\"",
       "interpret": "Interpret with AI",
       "interpreted": "Interpreted query",
       "confidence": "Confidence: {{score}}%",
       "categories": "Categories",
       "location": "Location",
-      "exclude": "Exclude"
+      "exclude": "Exclude",
+      "technologies": "Technologies",
+      "companySize": "Company size",
+      "employees": "Employees",
+      "size": {
+        "small": "Small (1-50)",
+        "medium": "Medium (51-250)",
+        "large": "Large (251-1000)",
+        "enterprise": "Enterprise (1000+)"
+      }
     },
     "manual": {
       "categories": "Categories (comma separated)",
@@ -22,6 +31,14 @@
       "cityPlaceholder": "E.g.: Berlin",
       "region": "Region",
       "regionPlaceholder": "E.g.: Bavaria",
+      "country": "Country",
+      "technologies": "Technologies (comma separated)",
+      "technologiesPlaceholder": "E.g.: SAP, Salesforce, Oracle",
+      "companySize": "Company size",
+      "anySize": "Any size",
+      "employees": "Employee count",
+      "min": "Min",
+      "max": "Max",
       "estimate": "Calculate estimate"
     },
     "quality": {

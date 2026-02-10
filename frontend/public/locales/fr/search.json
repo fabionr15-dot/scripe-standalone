@@ -7,13 +7,22 @@
     "manualMode": "Recherche manuelle",
     "ai": {
       "label": "Décrivez ce que vous cherchez",
-      "placeholder": "Ex : \"Je cherche des restaurants à Paris, pas de fast food\"",
+      "placeholder": "Ex : \"Je cherche des restaurants en France, Allemagne et Suisse, pas de fast food, avec SAP\"",
       "interpret": "Interpréter avec l'IA",
       "interpreted": "Requête interprétée",
       "confidence": "Confiance : {{score}}%",
       "categories": "Catégories",
       "location": "Localisation",
-      "exclude": "Exclure"
+      "exclude": "Exclure",
+      "technologies": "Technologies",
+      "companySize": "Taille de l'entreprise",
+      "employees": "Employés",
+      "size": {
+        "small": "Petite (1-50)",
+        "medium": "Moyenne (51-250)",
+        "large": "Grande (251-1000)",
+        "enterprise": "Enterprise (1000+)"
+      }
     },
     "manual": {
       "categories": "Catégories (séparées par des virgules)",
@@ -22,6 +31,14 @@
       "cityPlaceholder": "Ex : Paris",
       "region": "Région",
       "regionPlaceholder": "Ex : Île-de-France",
+      "country": "Pays",
+      "technologies": "Technologies (séparées par des virgules)",
+      "technologiesPlaceholder": "Ex : SAP, Salesforce, Oracle",
+      "companySize": "Taille de l'entreprise",
+      "anySize": "Toutes tailles",
+      "employees": "Nombre d'employés",
+      "min": "Min",
+      "max": "Max",
       "estimate": "Calculer l'estimation"
     },
     "quality": {

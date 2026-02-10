@@ -33,11 +33,16 @@ interface InterpretedQuery {
     cities: string[];
     regions: string[];
     country: string;
-    countries?: string[];
+    countries: string[];  // All countries for multi-country search
   };
   keywords_include: string[];
   keywords_exclude: string[];
   confidence: number;
+  // Advanced filters
+  technologies: string[];
+  company_size: string | null;
+  employee_count_min: number | null;
+  employee_count_max: number | null;
 }
 
 type SearchMode = 'ai' | 'manual';
@@ -50,13 +55,17 @@ function formatLocationDisplay(
 ): string {
   const parts: string[] = [];
 
-  const countries: string[] = [];
-  if (locations.country) {
+  // Use the countries array directly
+  const countries: string[] = [...(locations.countries || [])];
+
+  // Fallback: if countries array is empty, use the country field
+  if (countries.length === 0 && locations.country) {
     countries.push(locations.country);
   }
 
+  // Extract additional countries from regions (backward compatibility)
   const realRegions: string[] = [];
-  for (const region of locations.regions) {
+  for (const region of locations.regions || []) {
     if (region.startsWith('country:')) {
       const code = region.replace('country:', '');
       if (!countries.includes(code)) {
@@ -67,7 +76,7 @@ function formatLocationDisplay(
     }
   }
 
-  if (locations.cities.length > 0) {
+  if (locations.cities && locations.cities.length > 0) {
     parts.push(locations.cities.join(', '));
   }
 
@@ -109,6 +118,11 @@ export function NewSearchPage() {
     city: '',
     region: '',
     country: 'IT',
+    // Advanced filters
+    technologies: '',
+    companySize: '',
+    employeeCountMin: '',
+    employeeCountMax: '',
   });
 
   const qualityTiers = [
@@ -143,16 +157,33 @@ export function NewSearchPage() {
 
     try {
       const res = await api.post('/ai/interpret', { query });
-      const mappedInterpretation = {
+
+      // Parse countries array - ensure it's always an array
+      let countries = res.data.countries || [];
+      if (!Array.isArray(countries)) {
+        countries = countries ? [countries] : [];
+      }
+      // Fallback: if countries is empty, use country field
+      if (countries.length === 0 && res.data.country) {
+        countries = [res.data.country];
+      }
+
+      const mappedInterpretation: InterpretedQuery = {
         categories: res.data.categories || [],
         locations: {
           cities: res.data.cities || [],
           regions: res.data.regions || [],
           country: res.data.country || 'IT',
+          countries: countries,
         },
         keywords_include: res.data.keywords_include || [],
         keywords_exclude: res.data.keywords_exclude || [],
         confidence: res.data.confidence || 0,
+        // Advanced filters
+        technologies: res.data.technologies || [],
+        company_size: res.data.company_size || null,
+        employee_count_min: res.data.employee_count_min || null,
+        employee_count_max: res.data.employee_count_max || null,
       };
       setInterpretation(mappedInterpretation);
       await handleEstimate(mappedInterpretation);
@@ -241,15 +272,39 @@ export function NewSearchPage() {
             country: manualData.country,
           };
 
+      // Get all countries for multi-country search
+      const countries = mode === 'ai' && interpretation?.locations.countries
+        ? interpretation.locations.countries
+        : [criteria.country || 'IT'];
+
+      // Parse manual technologies into array
+      const manualTechnologies = manualData.technologies
+        ? manualData.technologies.split(',').map((t) => t.trim()).filter(Boolean)
+        : undefined;
+
       const res = await api.post('/searches', {
         name: query || t('newSearch.defaultName', { date: new Date().toLocaleDateString(i18n.language) }),
         query: query || criteria.categories?.join(' ') || manualData.categories,
         country: criteria.country || 'IT',
+        countries: countries,  // Pass all countries for multi-country search
         regions: criteria.region ? [criteria.region] : undefined,
         cities: criteria.city ? [criteria.city] : undefined,
         keywords_exclude: criteria.keywords_exclude || undefined,
         target_count: targetCount,
         quality_tier: qualityTier,
+        // Advanced filters - support both AI and manual mode
+        technologies: mode === 'ai'
+          ? (interpretation?.technologies?.length ? interpretation.technologies : undefined)
+          : (manualTechnologies?.length ? manualTechnologies : undefined),
+        company_size: mode === 'ai'
+          ? (interpretation?.company_size || undefined)
+          : (manualData.companySize || undefined),
+        employee_count_min: mode === 'ai'
+          ? (interpretation?.employee_count_min || undefined)
+          : (manualData.employeeCountMin ? parseInt(manualData.employeeCountMin) : undefined),
+        employee_count_max: mode === 'ai'
+          ? (interpretation?.employee_count_max || undefined)
+          : (manualData.employeeCountMax ? parseInt(manualData.employeeCountMax) : undefined),
       });
 
       await api.post(`/searches/${res.data.id}/run`);
@@ -365,6 +420,31 @@ export function NewSearchPage() {
                       <p className="text-blue-900">{interpretation.keywords_exclude.join(', ')}</p>
                     </div>
                   )}
+                  {/* Advanced filters */}
+                  {interpretation.technologies && interpretation.technologies.length > 0 && (
+                    <div>
+                      <p className="text-blue-700 font-medium">{t('newSearch.ai.technologies')}</p>
+                      <p className="text-blue-900">{interpretation.technologies.join(', ')}</p>
+                    </div>
+                  )}
+                  {interpretation.company_size && (
+                    <div>
+                      <p className="text-blue-700 font-medium">{t('newSearch.ai.companySize')}</p>
+                      <p className="text-blue-900">{t(`newSearch.ai.size.${interpretation.company_size}`)}</p>
+                    </div>
+                  )}
+                  {(interpretation.employee_count_min || interpretation.employee_count_max) && (
+                    <div className="col-span-2">
+                      <p className="text-blue-700 font-medium">{t('newSearch.ai.employees')}</p>
+                      <p className="text-blue-900">
+                        {interpretation.employee_count_min && !interpretation.employee_count_max
+                          ? `${interpretation.employee_count_min}+`
+                          : interpretation.employee_count_min && interpretation.employee_count_max
+                          ? `${interpretation.employee_count_min} - ${interpretation.employee_count_max}`
+                          : `≤ ${interpretation.employee_count_max}`}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -414,6 +494,78 @@ export function NewSearchPage() {
                   placeholder={t('newSearch.manual.regionPlaceholder')}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
+              </div>
+
+              {/* Country Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-1">{t('newSearch.manual.country')}</label>
+                <select
+                  value={manualData.country}
+                  onChange={(e) => setManualData({ ...manualData, country: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="IT">{t('common:countries.IT')}</option>
+                  <option value="DE">{t('common:countries.DE')}</option>
+                  <option value="AT">{t('common:countries.AT')}</option>
+                  <option value="CH">{t('common:countries.CH')}</option>
+                  <option value="FR">{t('common:countries.FR')}</option>
+                  <option value="ES">{t('common:countries.ES')}</option>
+                  <option value="NL">{t('common:countries.NL')}</option>
+                  <option value="BE">{t('common:countries.BE')}</option>
+                  <option value="PL">{t('common:countries.PL')}</option>
+                </select>
+              </div>
+
+              {/* Technologies */}
+              <div className="col-span-2">
+                <label className="block text-sm font-medium mb-1">{t('newSearch.manual.technologies')}</label>
+                <input
+                  type="text"
+                  value={manualData.technologies}
+                  onChange={(e) => setManualData({ ...manualData, technologies: e.target.value })}
+                  placeholder={t('newSearch.manual.technologiesPlaceholder')}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Company Size */}
+              <div>
+                <label className="block text-sm font-medium mb-1">{t('newSearch.manual.companySize')}</label>
+                <select
+                  value={manualData.companySize}
+                  onChange={(e) => setManualData({ ...manualData, companySize: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">{t('newSearch.manual.anySize')}</option>
+                  <option value="small">{t('newSearch.ai.size.small')}</option>
+                  <option value="medium">{t('newSearch.ai.size.medium')}</option>
+                  <option value="large">{t('newSearch.ai.size.large')}</option>
+                  <option value="enterprise">{t('newSearch.ai.size.enterprise')}</option>
+                </select>
+              </div>
+
+              {/* Employee Count */}
+              <div>
+                <label className="block text-sm font-medium mb-1">{t('newSearch.manual.employees')}</label>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="number"
+                    value={manualData.employeeCountMin}
+                    onChange={(e) => setManualData({ ...manualData, employeeCountMin: e.target.value })}
+                    placeholder={t('newSearch.manual.min')}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    min="0"
+                  />
+                  <span className="text-gray-400">-</span>
+                  <input
+                    type="number"
+                    value={manualData.employeeCountMax}
+                    onChange={(e) => setManualData({ ...manualData, employeeCountMax: e.target.value })}
+                    placeholder={t('newSearch.manual.max')}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    min="0"
+                  />
+                </div>
               </div>
             </div>
 

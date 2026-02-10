@@ -32,6 +32,7 @@ class InterpretResponse(BaseModel):
 
     # Location
     country: str
+    countries: list[str]  # All countries for multi-country search
     regions: list[str]
     cities: list[str]
 
@@ -43,6 +44,11 @@ class InterpretResponse(BaseModel):
     business_type: str | None
     company_size: str | None
     industry: str | None
+
+    # Advanced filters
+    technologies: list[str]
+    employee_count_min: int | None
+    employee_count_max: int | None
 
     # Meta
     confidence: float
@@ -120,6 +126,7 @@ async def interpret_query(request: InterpretRequest):
             keywords=result.keywords,
             search_query=result.to_search_query(),
             country=result.country,
+            countries=result.countries,  # Multi-country support
             regions=result.regions,
             cities=result.cities,
             keywords_include=result.keywords_include,
@@ -127,6 +134,10 @@ async def interpret_query(request: InterpretRequest):
             business_type=result.business_type,
             company_size=result.company_size,
             industry=result.industry,
+            # Advanced filters
+            technologies=result.technologies,
+            employee_count_min=result.employee_count_min,
+            employee_count_max=result.employee_count_max,
             confidence=result.confidence,
             suggestions=result.suggestions,
             original_query=result.original_query,

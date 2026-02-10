@@ -63,6 +63,7 @@ class SearchCreateV1(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     query: str = Field(..., min_length=2, description="Search query (category, keywords)")
     country: str = Field(default="IT", min_length=2, max_length=2)
+    countries: list[str] | None = Field(default=None, description="All countries for multi-country search")
     regions: list[str] | None = Field(default=None, description="Regions to search in")
     cities: list[str] | None = Field(default=None, description="Cities to search in")
     keywords_include: list[str] | None = Field(default=None, description="Must include these keywords")
@@ -70,6 +71,12 @@ class SearchCreateV1(BaseModel):
     target_count: int = Field(default=100, ge=1, le=10000)
     quality_tier: QualityTier = Field(default=QualityTier.STANDARD)
     campaign_id: int | None = Field(default=None, description="Optional campaign to link to")
+
+    # Advanced filters
+    technologies: list[str] | None = Field(default=None, description="Required technologies (SAP, Salesforce, etc.)")
+    company_size: str | None = Field(default=None, description="Company size: small, medium, large, enterprise")
+    employee_count_min: int | None = Field(default=None, description="Minimum employee count")
+    employee_count_max: int | None = Field(default=None, description="Maximum employee count")
 
     # Validation options
     require_phone: bool = True
@@ -266,12 +273,18 @@ async def create_search(request: Request, search_data: SearchCreateV1, user: Use
         criteria = {
             "query": search_data.query,
             "country": search_data.country,
+            "countries": search_data.countries or [search_data.country],  # Multi-country support
             "regions": search_data.regions,
             "cities": search_data.cities,
             "keywords_include": search_data.keywords_include,
             "keywords_exclude": search_data.keywords_exclude,
             "quality_tier": search_data.quality_tier.value,
             "min_quality_score": tier_config["min_score"],
+            # Advanced filters
+            "technologies": search_data.technologies,
+            "company_size": search_data.company_size,
+            "employee_count_min": search_data.employee_count_min,
+            "employee_count_max": search_data.employee_count_max,
         }
 
         search = Search(
@@ -770,10 +783,11 @@ async def _execute_search_run(
             })
 
     try:
-        # Build search criteria
+        # Build search criteria with multi-country support
         search_criteria = SearchCriteria(
             query=criteria.get("query", ""),
             country=criteria.get("country", "IT"),
+            countries=criteria.get("countries"),  # Multi-country support
             regions=criteria.get("regions"),
             cities=criteria.get("cities"),
             keywords_include=criteria.get("keywords_include"),
@@ -783,6 +797,11 @@ async def _execute_search_run(
                 QualityTier(criteria.get("quality_tier", "standard")),
                 {}
             ).get("max_sources"),
+            # Advanced filters
+            technologies=criteria.get("technologies"),
+            company_size=criteria.get("company_size"),
+            employee_count_min=criteria.get("employee_count_min"),
+            employee_count_max=criteria.get("employee_count_max"),
         )
 
         # Execute search

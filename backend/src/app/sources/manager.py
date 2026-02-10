@@ -110,7 +110,8 @@ COUNTRY_CITIES: dict[str, list[str]] = {
 class SearchCriteria:
     """Search criteria for lead generation."""
     query: str  # Main search query (category, keywords)
-    country: str = "IT"
+    country: str = "IT"  # Primary country (for backward compatibility)
+    countries: list[str] | None = None  # All countries for multi-country search
     regions: list[str] | None = None
     cities: list[str] | None = None
     keywords_include: list[str] | None = None
@@ -118,6 +119,12 @@ class SearchCriteria:
     target_count: int = 100
     min_sources: int = 1  # Minimum sources to query
     max_sources: int | None = None  # None = all available
+
+    # Advanced filters
+    technologies: list[str] | None = None  # SAP, Salesforce, etc.
+    company_size: str | None = None  # small, medium, large, enterprise
+    employee_count_min: int | None = None
+    employee_count_max: int | None = None
 
 
 @dataclass
@@ -322,15 +329,15 @@ class SourceManager:
         criteria: SearchCriteria,
         progress_callback: Optional[Callable] = None,
     ) -> list[SourceResult]:
-        """Search sources across ALL cities until target is reached.
+        """Search sources across ALL cities in ALL countries until target is reached.
 
         CRITICAL: This method MUST deliver the exact number of leads requested.
         - If customer orders 100 → deliver 100
         - If customer orders 1,000 → deliver 1,000
         - If customer orders 30,000 → deliver 30,000
 
-        The method iterates through all cities in a country, searching each
-        source in each city, until the target count is reached.
+        For multi-country searches, iterates through all countries and all cities
+        within each country until the target count is reached.
 
         Args:
             criteria: Search criteria
@@ -339,56 +346,85 @@ class SourceManager:
         Returns:
             Results up to target count
         """
-        sources = self.get_sources_for_country(criteria.country)
+        # Get all countries to search (multi-country support)
+        countries_to_search = self._get_countries_to_search(criteria)
 
-        if not sources:
-            self.logger.warning("no_sources_available", country=criteria.country)
+        # Collect all cities from all countries
+        all_cities_with_country: list[tuple[str, str]] = []  # (city, country_code)
+        for country_code in countries_to_search:
+            country_cities = self._get_cities_for_country(country_code, criteria)
+            for city in country_cities:
+                all_cities_with_country.append((city, country_code))
+
+        if not all_cities_with_country:
+            self.logger.warning("no_cities_available", countries=countries_to_search)
             return []
 
-        # Get cities for the country
-        cities = self._get_cities_for_criteria(criteria)
+        # Get sources for all countries (deduplicated)
+        all_sources: dict[str, list] = {}  # country -> sources
+        for country_code in countries_to_search:
+            sources = self.get_sources_for_country(country_code)
+            if sources:
+                all_sources[country_code] = sources
+
+        if not all_sources:
+            self.logger.warning("no_sources_available", countries=countries_to_search)
+            return []
+
+        # Calculate total source count for progress
+        unique_source_names = set()
+        for sources in all_sources.values():
+            for s in sources:
+                unique_source_names.add(s.source_name)
 
         progress = SearchProgress(
-            total_sources=len(sources),
+            total_sources=len(unique_source_names),
             completed_sources=0,
             results_found=0,
             target_count=criteria.target_count,
-            total_cities=len(cities),
+            total_cities=len(all_cities_with_country),
         )
 
         self.logger.info(
             "search_cascade_started",
             query=criteria.query,
-            country=criteria.country,
+            countries=countries_to_search,
             target=criteria.target_count,
-            cities_count=len(cities),
-            sources=[s.source_name for s in sources],
+            cities_count=len(all_cities_with_country),
+            sources_per_country={k: [s.source_name for s in v] for k, v in all_sources.items()},
         )
 
         all_results: list[SourceResult] = []
         seen_companies: set[str] = set()  # Deduplicate by company name
 
-        # MAIN LOOP: Iterate through cities until target reached
-        for city_index, city in enumerate(cities):
+        # MAIN LOOP: Iterate through cities in ALL countries until target reached
+        for city_index, (city, country_code) in enumerate(all_cities_with_country):
             if progress.target_reached:
                 self.logger.info(
                     "target_reached",
                     results=progress.results_found,
                     target=criteria.target_count,
                     city=city,
+                    country=country_code,
                 )
                 break
 
-            progress.current_city = city
+            progress.current_city = f"{city} ({country_code})"
             progress.cities_searched = city_index + 1
 
             self.logger.debug(
                 "searching_city",
                 city=city,
+                country=country_code,
                 city_index=city_index + 1,
-                total_cities=len(cities),
+                total_cities=len(all_cities_with_country),
                 results_so_far=len(all_results),
             )
+
+            # Get sources for this country
+            sources = all_sources.get(country_code, [])
+            if not sources:
+                continue
 
             # Search all sources for this city
             for source in sources:
@@ -402,7 +438,7 @@ class SourceManager:
                     source=source,
                     query=criteria.query,
                     city=city,
-                    country=criteria.country,
+                    country=country_code,
                     limit=min(remaining * 2, 100),  # Get up to 2x what we need, max 100 per source/city
                     progress=progress,
                     progress_callback=progress_callback,
@@ -425,7 +461,7 @@ class SourceManager:
                 self.logger.info(
                     "search_progress",
                     cities_searched=city_index + 1,
-                    total_cities=len(cities),
+                    total_cities=len(all_cities_with_country),
                     results_found=len(all_results),
                     target=criteria.target_count,
                     percent_complete=progress.percent_complete,
@@ -441,11 +477,73 @@ class SourceManager:
 
         return all_results[:criteria.target_count]
 
+    def _get_countries_to_search(self, criteria: SearchCriteria) -> list[str]:
+        """Get list of countries to search.
+
+        Supports multi-country searches via the 'countries' field.
+        Falls back to single 'country' field for backward compatibility.
+
+        Args:
+            criteria: Search criteria
+
+        Returns:
+            List of country codes to search
+        """
+        # Multi-country search
+        if criteria.countries and len(criteria.countries) > 0:
+            return criteria.countries
+
+        # Single country (backward compatibility)
+        return [criteria.country.upper()]
+
+    def _get_cities_for_country(
+        self, country_code: str, criteria: SearchCriteria
+    ) -> list[str]:
+        """Get list of cities for a specific country.
+
+        If user specified cities/regions for this country, use those.
+        Otherwise, return all cities for the country.
+
+        Args:
+            country_code: Country code (e.g., "IT", "DE")
+            criteria: Search criteria (for user-specified cities)
+
+        Returns:
+            List of cities to search in this country
+        """
+        country_upper = country_code.upper()
+
+        # User specified specific cities (use for all countries)
+        if criteria.cities and len(criteria.cities) > 0:
+            return criteria.cities
+
+        # User specified specific regions (treat as cities)
+        if criteria.regions and len(criteria.regions) > 0:
+            # Filter out region entries that are country markers
+            actual_regions = [
+                r for r in criteria.regions
+                if not r.startswith("country:")
+            ]
+            if actual_regions:
+                return actual_regions
+
+        # Get all cities for this country
+        if country_upper in COUNTRY_CITIES:
+            return COUNTRY_CITIES[country_upper]
+
+        # Fallback to default cities
+        self.logger.warning(
+            "no_cities_for_country",
+            country=country_upper,
+            using_default=True,
+        )
+        return COUNTRY_CITIES.get("default", [""])
+
     def _get_cities_for_criteria(self, criteria: SearchCriteria) -> list[str]:
         """Get list of cities to search based on criteria.
 
-        If user specified cities/regions, use those.
-        Otherwise, return all cities for the country.
+        DEPRECATED: Use _get_cities_for_country for multi-country support.
+        Kept for backward compatibility with search_all().
 
         Args:
             criteria: Search criteria
@@ -453,26 +551,7 @@ class SourceManager:
         Returns:
             List of cities to search
         """
-        # User specified specific cities
-        if criteria.cities and len(criteria.cities) > 0:
-            return criteria.cities
-
-        # User specified specific regions (treat as cities for search)
-        if criteria.regions and len(criteria.regions) > 0:
-            return criteria.regions
-
-        # Get all cities for the country
-        country = criteria.country.upper()
-        if country in COUNTRY_CITIES:
-            return COUNTRY_CITIES[country]
-
-        # Fallback to default cities
-        self.logger.warning(
-            "no_cities_for_country",
-            country=country,
-            using_default=True,
-        )
-        return COUNTRY_CITIES.get("default", [""])
+        return self._get_cities_for_country(criteria.country, criteria)
 
     async def _search_source_for_city(
         self,

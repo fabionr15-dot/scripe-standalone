@@ -7,13 +7,22 @@
     "manualMode": "Manuelle Suche",
     "ai": {
       "label": "Beschreiben Sie, was Sie suchen",
-      "placeholder": "z.B.: \"Ich suche Restaurants in Berlin, kein Fast Food\"",
+      "placeholder": "z.B.: \"Ich suche Restaurants in Deutschland, Österreich und Schweiz, kein Fast Food, mit SAP\"",
       "interpret": "Mit KI interpretieren",
       "interpreted": "Interpretierte Anfrage",
       "confidence": "Konfidenz: {{score}}%",
       "categories": "Kategorien",
       "location": "Standort",
-      "exclude": "Ausschließen"
+      "exclude": "Ausschließen",
+      "technologies": "Technologien",
+      "companySize": "Firmengröße",
+      "employees": "Mitarbeiter",
+      "size": {
+        "small": "Klein (1-50)",
+        "medium": "Mittel (51-250)",
+        "large": "Groß (251-1000)",
+        "enterprise": "Konzern (1000+)"
+      }
     },
     "manual": {
       "categories": "Kategorien (kommagetrennt)",
@@ -22,6 +31,14 @@
       "cityPlaceholder": "z.B.: Berlin",
       "region": "Region",
       "regionPlaceholder": "z.B.: Bayern",
+      "country": "Land",
+      "technologies": "Technologien (kommagetrennt)",
+      "technologiesPlaceholder": "z.B.: SAP, Salesforce, Oracle",
+      "companySize": "Firmengröße",
+      "anySize": "Beliebig",
+      "employees": "Mitarbeiteranzahl",
+      "min": "Min",
+      "max": "Max",
       "estimate": "Schätzung berechnen"
     },
     "quality": {
