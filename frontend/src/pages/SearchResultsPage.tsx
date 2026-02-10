@@ -120,7 +120,8 @@ export function SearchResultsPage() {
   // Load leads
   const loadLeads = useCallback(async () => {
     try {
-      const res = await api.get(`/searches/${id}/companies`);
+      // Load all results (up to 1000) instead of default 50
+      const res = await api.get(`/searches/${id}/companies?page_size=1000`);
       setLeads(res.data.items || []);
     } catch (err) {
       console.error('Failed to load leads:', err);
