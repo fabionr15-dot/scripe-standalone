@@ -28,7 +28,8 @@
     "pending": "Ausstehend",
     "running": "Läuft",
     "completed": "Abgeschlossen",
-    "failed": "Fehlgeschlagen"
+    "failed": "Fehlgeschlagen",
+    "cancelled": "Abgebrochen"
   },
   "actions": {
     "cancel": "Abbrechen",
@@ -37,7 +38,8 @@
     "delete": "Löschen",
     "export": "Exportieren",
     "view": "Anzeigen",
-    "loading": "Laden..."
+    "loading": "Laden...",
+    "stop": "Stoppen"
   },
   "countries": {
     "DE": "Deutschland",

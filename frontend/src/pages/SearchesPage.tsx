@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import {
   Search,
@@ -9,6 +9,8 @@ import {
   ArrowRight,
   Filter,
   Calendar,
+  StopCircle,
+  Loader2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
@@ -18,11 +20,19 @@ interface SearchItem {
   id: string;
   name: string;
   query: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
   quality_tier: string;
   results_count: number;
+  target_count: number;
   created_at: string;
   completed_at: string | null;
+  current_run_id?: number;
+}
+
+interface LiveProgress {
+  results_found: number;
+  target_count: number;
+  progress_percent: number;
 }
 
 export function SearchesPage() {
@@ -31,12 +41,10 @@ export function SearchesPage() {
   const [searches, setSearches] = useState<SearchItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'completed' | 'running'>('all');
+  const [liveProgress, setLiveProgress] = useState<Record<string, LiveProgress>>({});
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    loadSearches();
-  }, []);
-
-  async function loadSearches() {
+  const loadSearches = useCallback(async () => {
     try {
       const res = await api.get('/searches');
       setSearches(res.data.items || []);
@@ -46,7 +54,73 @@ export function SearchesPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
+
+  // Poll for live progress of running searches
+  const pollRunningSearches = useCallback(async () => {
+    const runningSearches = searches.filter(s => s.status === 'running' && s.current_run_id);
+
+    if (runningSearches.length === 0) return;
+
+    const progressUpdates: Record<string, LiveProgress> = {};
+
+    for (const search of runningSearches) {
+      try {
+        const res = await api.get(`/searches/${search.id}/runs/${search.current_run_id}`);
+        progressUpdates[search.id] = {
+          results_found: res.data.results_found || 0,
+          target_count: res.data.target_count || search.target_count,
+          progress_percent: res.data.progress_percent || 0,
+        };
+
+        // If search completed, refresh the list
+        if (res.data.status === 'completed' || res.data.status === 'cancelled' || res.data.status === 'failed') {
+          loadSearches();
+        }
+      } catch (err) {
+        console.error(`Failed to poll search ${search.id}:`, err);
+      }
+    }
+
+    setLiveProgress(prev => ({ ...prev, ...progressUpdates }));
+  }, [searches, loadSearches]);
+
+  useEffect(() => {
+    loadSearches();
+  }, [loadSearches]);
+
+  // Set up polling for running searches
+  useEffect(() => {
+    const hasRunning = searches.some(s => s.status === 'running');
+
+    if (hasRunning) {
+      // Initial poll
+      pollRunningSearches();
+
+      // Poll every 2 seconds
+      pollingRef.current = setInterval(pollRunningSearches, 2000);
+    }
+
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, [searches, pollRunningSearches]);
+
+  // Cancel search handler
+  const handleCancelSearch = async (e: React.MouseEvent, searchId: string, runId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      await api.post(`/searches/${searchId}/runs/${runId}/cancel`);
+      // Refresh the list
+      loadSearches();
+    } catch (err) {
+      console.error('Failed to cancel search:', err);
+    }
+  };
 
   const filteredSearches = searches.filter((s) => {
     if (filter === 'all') return true;
@@ -55,11 +129,24 @@ export function SearchesPage() {
     return true;
   });
 
-  const statusConfig = {
+  const statusConfig: Record<string, { label: string; icon: any; color: string }> = {
     pending: { label: tc('status.pending'), icon: Clock, color: 'text-gray-500 bg-gray-100' },
-    running: { label: tc('status.running'), icon: Clock, color: 'text-blue-500 bg-blue-100' },
+    running: { label: tc('status.running'), icon: Loader2, color: 'text-blue-500 bg-blue-100' },
     completed: { label: tc('status.completed'), icon: CheckCircle, color: 'text-green-500 bg-green-100' },
     failed: { label: tc('status.failed'), icon: XCircle, color: 'text-red-500 bg-red-100' },
+    cancelled: { label: tc('status.cancelled'), icon: StopCircle, color: 'text-orange-500 bg-orange-100' },
+  };
+
+  // Helper to get lead count display
+  const getLeadCountDisplay = (search: SearchItem) => {
+    if (search.status === 'running') {
+      const progress = liveProgress[search.id];
+      if (progress) {
+        return `${progress.results_found}/${progress.target_count}`;
+      }
+      return `0/${search.target_count || '?'}`;
+    }
+    return search.results_count.toString();
   };
 
   const tierLabels: Record<string, string> = {
@@ -165,7 +252,9 @@ export function SearchesPage() {
 
                   <div className="flex items-center gap-6">
                     <div className="text-right">
-                      <p className="font-medium">{t('searches.leads', { count: search.results_count })}</p>
+                      <p className="font-medium">
+                        {getLeadCountDisplay(search)} Leads
+                      </p>
                       <p className="text-xs text-gray-500">
                         {tierLabels[search.quality_tier] || search.quality_tier}
                       </p>
@@ -179,9 +268,20 @@ export function SearchesPage() {
                     <div
                       className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm ${status.color}`}
                     >
-                      <StatusIcon className="h-4 w-4" />
+                      <StatusIcon className={`h-4 w-4 ${search.status === 'running' ? 'animate-spin' : ''}`} />
                       {status.label}
                     </div>
+
+                    {/* Stop button for running searches */}
+                    {search.status === 'running' && search.current_run_id && (
+                      <button
+                        onClick={(e) => handleCancelSearch(e, search.id, search.current_run_id!)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title={tc('actions.stop')}
+                      >
+                        <StopCircle className="h-5 w-5" />
+                      </button>
+                    )}
 
                     <ArrowRight className="h-5 w-5 text-gray-400" />
                   </div>

@@ -213,6 +213,8 @@ async def list_searches(
                 "status": status,
                 "quality_tier": s.criteria_json.get("quality_tier", "standard") if s.criteria_json else "standard",
                 "results_count": company_count,
+                "target_count": s.target_count or 0,
+                "current_run_id": latest_run.id if latest_run and latest_run.status == "running" else None,
                 "created_at": s.created_at.isoformat(),
                 "completed_at": latest_run.ended_at.isoformat() if latest_run and latest_run.ended_at else None,
             })
@@ -548,6 +550,56 @@ async def get_run_status(
         }
 
 
+@router.post("/{search_id}/runs/{run_id}/cancel")
+async def cancel_search_run(
+    search_id: int,
+    run_id: int,
+    user: UserAccount = Depends(require_auth),
+):
+    """Cancel a running search.
+
+    Sets cancellation flag and updates database status to 'cancelled'.
+    The search loop will check this flag and stop gracefully.
+    """
+    with db.session() as session:
+        _verify_search_ownership(session, search_id, user.id)
+
+        run = session.query(Run).filter(
+            Run.id == run_id,
+            Run.search_id == search_id,
+        ).first()
+
+        if not run:
+            raise HTTPException(status_code=404, detail="Run not found")
+
+        # Check if run is still active
+        if run_id not in _active_runs:
+            # Run already finished or not tracked
+            if run.status == "running":
+                # Update DB status if still marked as running
+                run.status = "cancelled"
+                run.ended_at = datetime.utcnow()
+                session.commit()
+            return {"status": run.status, "message": "Run already finished"}
+
+        # Set cancellation flag in active runs
+        _active_runs[run_id]["status"] = "cancelling"
+        _active_runs[run_id]["events"].append({
+            "type": "cancelling",
+            "message": "Search cancellation requested by user",
+            "timestamp": datetime.utcnow().isoformat()
+        })
+
+        # Update database
+        run.status = "cancelled"
+        run.ended_at = datetime.utcnow()
+        session.commit()
+
+        logger.info("search_cancelled", search_id=search_id, run_id=run_id, user_id=user.id)
+
+        return {"status": "cancelled", "message": "Search cancelled successfully"}
+
+
 @router.get("/{search_id}/companies")
 async def get_search_companies(
     search_id: int,
@@ -760,6 +812,11 @@ async def _execute_search_run(
     def progress_callback(progress: SearchProgress):
         """Update progress tracking."""
         if run_id in _active_runs:
+            # Check for cancellation request
+            if _active_runs[run_id].get("status") == "cancelling":
+                logger.info("search_cancellation_detected", run_id=run_id)
+                raise asyncio.CancelledError("Search cancelled by user")
+
             _active_runs[run_id].update({
                 "progress_percent": progress.percent_complete,
                 "current_source": progress.current_source,
@@ -941,6 +998,30 @@ async def _execute_search_run(
             raw_results=len(results),
             duplicates_removed=len(enriched_results) - len(deduplicated),
         )
+
+    except asyncio.CancelledError:
+        # Search was cancelled by user
+        logger.info(
+            "search_run_cancelled",
+            search_id=search_id,
+            run_id=run_id,
+        )
+
+        # Update run as cancelled (already done in cancel endpoint, but ensure consistency)
+        with db.session() as session:
+            run = session.query(Run).filter(Run.id == run_id).first()
+            if run and run.status != "cancelled":
+                run.status = "cancelled"
+                run.ended_at = datetime.utcnow()
+            session.commit()
+
+        if run_id in _active_runs:
+            _active_runs[run_id]["status"] = "cancelled"
+            _active_runs[run_id]["events"].append({
+                "event": "cancelled",
+                "run_id": run_id,
+                "message": "Search cancelled by user",
+            })
 
     except Exception as e:
         logger.error(

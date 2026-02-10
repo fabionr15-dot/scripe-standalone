@@ -28,7 +28,8 @@
     "pending": "En attente",
     "running": "En cours",
     "completed": "Terminée",
-    "failed": "Échouée"
+    "failed": "Échouée",
+    "cancelled": "Annulée"
   },
   "actions": {
     "cancel": "Annuler",
@@ -37,7 +38,8 @@
     "delete": "Supprimer",
     "export": "Exporter",
     "view": "Voir",
-    "loading": "Chargement..."
+    "loading": "Chargement...",
+    "stop": "Arrêter"
   },
   "countries": {
     "DE": "Allemagne",
