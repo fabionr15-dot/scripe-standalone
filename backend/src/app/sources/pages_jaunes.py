@@ -35,8 +35,8 @@ class PagesJaunesScraper(BaseConnector):
         supported_countries=["FR"],  # France only
         enabled=True,
         confidence_score=0.85,  # High confidence - authoritative French source
-        max_results_per_query=50,
-        timeout_seconds=20,
+        max_results_per_query=500,  # 20 per page, up to 25 pages
+        timeout_seconds=120,  # Longer timeout for multiple pages
         retry_count=2,
         requires_proxy=True,  # Use proxy to avoid blocks
     )
@@ -78,9 +78,10 @@ class PagesJaunesScraper(BaseConnector):
         results = []
 
         try:
-            # Calculate pages needed
+            # Calculate pages needed - allow up to 25 pages for large requests
             results_per_page = 20
-            pages_needed = min(3, (limit + results_per_page - 1) // results_per_page)
+            max_pages = 25  # Safety limit: max 500 results (25 * 20)
+            pages_needed = min(max_pages, (limit + results_per_page - 1) // results_per_page)
 
             for page in range(1, pages_needed + 1):
                 if len(results) >= limit:

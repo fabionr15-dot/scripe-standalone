@@ -193,8 +193,8 @@ class OverpassConnector(BaseConnector):
         requires_api_key=False,
         supported_countries=["*"],  # All countries
         confidence_score=0.75,  # Community-generated data
-        max_results_per_query=200,
-        timeout_seconds=60,  # Overpass can be slow
+        max_results_per_query=500,  # Can handle large queries
+        timeout_seconds=120,  # Overpass can be slow for large areas
         requires_proxy=False,
     )
 

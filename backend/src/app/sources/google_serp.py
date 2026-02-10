@@ -35,8 +35,8 @@ class GoogleSerpScraper(BaseConnector):
         supported_countries=["*"],  # Can search any country
         enabled=True,
         confidence_score=0.6,  # Lower confidence - indirect source
-        max_results_per_query=30,  # Google shows ~10 per page, 3 pages max
-        timeout_seconds=20,
+        max_results_per_query=200,  # 10 per page, up to 20 pages
+        timeout_seconds=120,  # Longer timeout for multiple pages
         retry_count=2,
         requires_proxy=True,  # Must use proxy to avoid blocks
     )
@@ -93,9 +93,10 @@ class GoogleSerpScraper(BaseConnector):
         language = kwargs.get("language", "it")
 
         try:
-            # Calculate pages needed
+            # Calculate pages needed - allow up to 20 pages for large requests
             results_per_page = 10
-            pages_needed = min(3, (limit + results_per_page - 1) // results_per_page)
+            max_pages = 20  # Safety limit: max 200 results (20 * 10)
+            pages_needed = min(max_pages, (limit + results_per_page - 1) // results_per_page)
 
             for page in range(pages_needed):
                 if len(results) >= limit:

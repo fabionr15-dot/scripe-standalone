@@ -35,8 +35,8 @@ class PagineGialleScraper(BaseConnector):
         supported_countries=["IT"],  # Italy only
         enabled=True,
         confidence_score=0.8,  # Good confidence - authoritative Italian source
-        max_results_per_query=50,  # ~25 per page, 2 pages max
-        timeout_seconds=20,
+        max_results_per_query=500,  # 25 per page, up to 20 pages
+        timeout_seconds=120,  # Longer timeout for multiple pages
         retry_count=2,
         requires_proxy=True,  # Use proxy to avoid blocks
     )
@@ -78,9 +78,10 @@ class PagineGialleScraper(BaseConnector):
         results = []
 
         try:
-            # Calculate pages needed
+            # Calculate pages needed - allow up to 20 pages for large requests
             results_per_page = 25
-            pages_needed = min(2, (limit + results_per_page - 1) // results_per_page)
+            max_pages = 20  # Safety limit: max 500 results (20 * 25)
+            pages_needed = min(max_pages, (limit + results_per_page - 1) // results_per_page)
 
             for page in range(1, pages_needed + 1):
                 if len(results) >= limit:
