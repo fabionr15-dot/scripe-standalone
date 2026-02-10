@@ -32,6 +32,7 @@
       "region": "Région",
       "regionPlaceholder": "Ex : Île-de-France",
       "country": "Pays",
+      "countries": "Pays (sélection multiple)",
       "technologies": "Technologies (séparées par des virgules)",
       "technologiesPlaceholder": "Ex : SAP, Salesforce, Oracle",
       "companySize": "Taille de l'entreprise",

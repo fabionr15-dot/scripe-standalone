@@ -32,6 +32,7 @@
       "region": "Region",
       "regionPlaceholder": "z.B.: Bayern",
       "country": "Land",
+      "countries": "Länder (mehrfach auswählbar)",
       "technologies": "Technologien (kommagetrennt)",
       "technologiesPlaceholder": "z.B.: SAP, Salesforce, Oracle",
       "companySize": "Firmengröße",

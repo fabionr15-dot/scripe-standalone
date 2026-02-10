@@ -32,6 +32,7 @@
       "region": "Region",
       "regionPlaceholder": "E.g.: Bavaria",
       "country": "Country",
+      "countries": "Countries (select multiple)",
       "technologies": "Technologies (comma separated)",
       "technologiesPlaceholder": "E.g.: SAP, Salesforce, Oracle",
       "companySize": "Company size",

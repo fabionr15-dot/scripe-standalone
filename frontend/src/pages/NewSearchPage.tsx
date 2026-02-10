@@ -117,7 +117,7 @@ export function NewSearchPage() {
     categories: '',
     city: '',
     region: '',
-    country: 'IT',
+    countries: ['IT'] as string[],  // Multi-country support
     // Advanced filters
     technologies: '',
     companySize: '',
@@ -204,12 +204,14 @@ export function NewSearchPage() {
             city: interpreted.locations.cities[0],
             region: interpreted.locations.regions[0],
             country: interpreted.locations.country,
+            countries: interpreted.locations.countries,
           }
         : {
             categories: manualData.categories.split(',').map((c) => c.trim()),
             city: manualData.city,
             region: manualData.region,
-            country: manualData.country,
+            country: manualData.countries[0] || 'IT',
+            countries: manualData.countries,
           };
 
       const allRegions: string[] = [];
@@ -224,6 +226,7 @@ export function NewSearchPage() {
       const res = await api.post('/ai/estimate', {
         query: criteria.categories?.join(' ') || '',
         country: criteria.country || 'IT',
+        countries: criteria.countries,
         regions: allRegions,
         cities: criteria.city ? [criteria.city] : [],
         target_count: targetCount,
@@ -269,13 +272,13 @@ export function NewSearchPage() {
             categories: manualData.categories.split(',').map((c) => c.trim()),
             city: manualData.city,
             region: manualData.region,
-            country: manualData.country,
+            country: manualData.countries[0] || 'IT',
           };
 
       // Get all countries for multi-country search
       const countries = mode === 'ai' && interpretation?.locations.countries
         ? interpretation.locations.countries
-        : [criteria.country || 'IT'];
+        : manualData.countries.length > 0 ? manualData.countries : ['IT'];
 
       // Parse manual technologies into array
       const manualTechnologies = manualData.technologies
@@ -496,24 +499,38 @@ export function NewSearchPage() {
                 />
               </div>
 
-              {/* Country Selection */}
-              <div>
-                <label className="block text-sm font-medium mb-1">{t('newSearch.manual.country')}</label>
-                <select
-                  value={manualData.country}
-                  onChange={(e) => setManualData({ ...manualData, country: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="IT">{t('common:countries.IT')}</option>
-                  <option value="DE">{t('common:countries.DE')}</option>
-                  <option value="AT">{t('common:countries.AT')}</option>
-                  <option value="CH">{t('common:countries.CH')}</option>
-                  <option value="FR">{t('common:countries.FR')}</option>
-                  <option value="ES">{t('common:countries.ES')}</option>
-                  <option value="NL">{t('common:countries.NL')}</option>
-                  <option value="BE">{t('common:countries.BE')}</option>
-                  <option value="PL">{t('common:countries.PL')}</option>
-                </select>
+              {/* Country Selection - Multi-Select */}
+              <div className="col-span-2">
+                <label className="block text-sm font-medium mb-2">{t('newSearch.manual.countries')}</label>
+                <div className="flex flex-wrap gap-2">
+                  {['DE', 'AT', 'CH', 'IT', 'FR', 'ES', 'NL', 'BE', 'PL'].map((code) => (
+                    <label
+                      key={code}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${
+                        manualData.countries.includes(code)
+                          ? 'bg-blue-50 border-blue-500 text-blue-700'
+                          : 'bg-white border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={manualData.countries.includes(code)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setManualData({ ...manualData, countries: [...manualData.countries, code] });
+                          } else {
+                            setManualData({
+                              ...manualData,
+                              countries: manualData.countries.filter(c => c !== code)
+                            });
+                          }
+                        }}
+                        className="sr-only"
+                      />
+                      {t(`common:countries.${code}`)}
+                    </label>
+                  ))}
+                </div>
               </div>
 
               {/* Technologies */}

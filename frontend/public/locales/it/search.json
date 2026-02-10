@@ -32,6 +32,7 @@
       "region": "Regione",
       "regionPlaceholder": "Es: Lombardia",
       "country": "Paese",
+      "countries": "Paesi (selezione multipla)",
       "technologies": "Tecnologie (separate da virgola)",
       "technologiesPlaceholder": "Es: SAP, Salesforce, Oracle",
       "companySize": "Dimensione azienda",
