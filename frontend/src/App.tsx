@@ -43,6 +43,7 @@ function LanguageWrapper({ children }: { children: React.ReactNode }) {
 
 /**
  * Detects user language and redirects to /:lang/ preserving the path.
+ * Fixed: Prevents redirect loop when path already has a language prefix.
  */
 function LanguageRedirect() {
   const { i18n } = useTranslation();
@@ -53,7 +54,20 @@ function LanguageRedirect() {
     detectedLang = 'en';
   }
 
-  const path = location.pathname === '/' ? '' : location.pathname;
+  let path = location.pathname;
+
+  // Check if path already starts with a language code to prevent /de/de/de... loops
+  const langPrefixMatch = path.match(/^\/([a-z]{2})(\/|$)/);
+  if (langPrefixMatch && SUPPORTED_LANGUAGES.includes(langPrefixMatch[1] as SupportedLanguage)) {
+    // Already has a valid language prefix - strip it and use detected language
+    const pathWithoutLang = path.slice(3) || ''; // Remove /de or /en etc.
+    return <Navigate to={`/${detectedLang}${pathWithoutLang}`} replace />;
+  }
+
+  // No language prefix - add one
+  if (path === '/') {
+    path = '';
+  }
   return <Navigate to={`/${detectedLang}${path}`} replace />;
 }
 
