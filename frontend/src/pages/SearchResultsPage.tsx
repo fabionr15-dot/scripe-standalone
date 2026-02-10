@@ -48,6 +48,9 @@ interface RunStatus {
   status: string;
   progress_percent: number;
   current_source: string | null;
+  current_city: string | null;
+  cities_searched: number;
+  total_cities: number;
   results_found: number;
   target_count: number;
   is_active: boolean;
@@ -317,40 +320,88 @@ export function SearchResultsPage() {
                 </div>
               </div>
 
-              {/* Status cards */}
-              <div className="grid grid-cols-3 gap-4">
-                {/* Found */}
-                <div className="bg-blue-50 rounded-lg p-4 text-center">
-                  <Building2 className="h-5 w-5 mx-auto text-blue-600 mb-1" />
-                  <p className="text-2xl font-bold text-blue-700">{resultsFound}</p>
-                  <p className="text-xs text-blue-600">{t('results.running.leadsFound')}</p>
+              {/* Big Counter Display */}
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white text-center">
+                <p className="text-sm opacity-80 mb-1">{t('results.running.leadsCollected')}</p>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-5xl font-bold tabular-nums tracking-tight">
+                    {resultsFound.toLocaleString()}
+                  </span>
+                  <span className="text-2xl opacity-60">/</span>
+                  <span className="text-2xl opacity-80">
+                    {targetCount.toLocaleString()}
+                  </span>
                 </div>
-
-                {/* Target */}
-                <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <Database className="h-5 w-5 mx-auto text-gray-500 mb-1" />
-                  <p className="text-2xl font-bold text-gray-700">{targetCount}</p>
-                  <p className="text-xs text-gray-500">{t('results.running.target')}</p>
-                </div>
-
-                {/* Time */}
-                <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <Clock className="h-5 w-5 mx-auto text-gray-500 mb-1" />
-                  <p className="text-2xl font-bold text-gray-700">
-                    {formatDuration(elapsedSeconds)}
-                  </p>
-                  <p className="text-xs text-gray-500">{t('results.running.elapsed')}</p>
+                <div className="mt-3 bg-white/20 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-white h-full transition-all duration-500 ease-out"
+                    style={{ width: `${Math.min(100, (resultsFound / Math.max(targetCount, 1)) * 100)}%` }}
+                  />
                 </div>
               </div>
 
-              {/* Current source */}
-              {runStatus?.current_source && (
-                <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 rounded-lg px-4 py-3">
-                  <Zap className="h-4 w-4 text-yellow-500 animate-pulse" />
-                  <span>
-                    {t('results.running.querying')} <strong>{t(`sourceNames.${runStatus.current_source}`, { defaultValue: runStatus.current_source })}</strong>
-                    <LoadingDots />
-                  </span>
+              {/* Status cards */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Progress Details */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Database className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm font-medium text-gray-700">{t('results.running.progress')}</span>
+                  </div>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {Math.round((resultsFound / Math.max(targetCount, 1)) * 100)}%
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {t('results.running.remaining', { count: Math.max(0, targetCount - resultsFound) })}
+                  </p>
+                </div>
+
+                {/* Time */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm font-medium text-gray-700">{t('results.running.elapsed')}</span>
+                  </div>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {formatDuration(elapsedSeconds)}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {resultsFound > 0 && elapsedSeconds > 0 && (
+                      <>~{Math.round((resultsFound / elapsedSeconds) * 60)} {t('results.running.leadsPerMinute')}</>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Current source and city */}
+              {(runStatus?.current_source || runStatus?.current_city) && (
+                <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 rounded-lg px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-yellow-500 animate-pulse" />
+                    <span>
+                      {runStatus.current_city && (
+                        <>
+                          <MapPin className="h-3.5 w-3.5 inline mr-1" />
+                          <strong>{runStatus.current_city}</strong>
+                          {' - '}
+                        </>
+                      )}
+                      {runStatus.current_source && (
+                        <>
+                          {t('results.running.querying')} <strong>{t(`sourceNames.${runStatus.current_source}`, { defaultValue: runStatus.current_source })}</strong>
+                        </>
+                      )}
+                      <LoadingDots />
+                    </span>
+                  </div>
+                  {runStatus.total_cities > 0 && (
+                    <span className="text-xs text-gray-500">
+                      {t('results.running.citiesProgress', {
+                        current: runStatus.cities_searched,
+                        total: runStatus.total_cities
+                      })}
+                    </span>
+                  )}
                 </div>
               )}
             </div>

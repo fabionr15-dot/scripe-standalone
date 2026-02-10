@@ -521,6 +521,9 @@ async def get_run_status(
             "status": live_data.get("status", run.status) if is_active else run.status,
             "progress_percent": live_data.get("progress_percent", run.progress_percent) if is_active else run.progress_percent,
             "current_source": live_data.get("current_source") if is_active else None,
+            "current_city": live_data.get("current_city") if is_active else None,
+            "cities_searched": live_data.get("cities_searched", 0) if is_active else 0,
+            "total_cities": live_data.get("total_cities", 0) if is_active else 0,
             "results_found": live_data.get("results_found", run.found_count) if is_active else run.found_count,
             "target_count": live_data.get("target_count", 0) if is_active else run.found_count,
             "current_step": run.current_step,
@@ -747,6 +750,9 @@ async def _execute_search_run(
             _active_runs[run_id].update({
                 "progress_percent": progress.percent_complete,
                 "current_source": progress.current_source,
+                "current_city": progress.current_city,
+                "cities_searched": progress.cities_searched,
+                "total_cities": progress.total_cities,
                 "results_found": progress.results_found,
             })
 
@@ -755,6 +761,9 @@ async def _execute_search_run(
                 "event": "source_progress",
                 "run_id": run_id,
                 "source": progress.current_source,
+                "city": progress.current_city,
+                "cities_searched": progress.cities_searched,
+                "total_cities": progress.total_cities,
                 "completed_sources": progress.completed_sources,
                 "total_sources": progress.total_sources,
                 "results_found": progress.results_found,
