@@ -952,7 +952,30 @@ async def _execute_search_run(
 
         # Save results to database
         with db.session() as session:
+            # Get search settings for validation requirements
+            search = session.query(Search).filter(Search.id == search_id).first()
+            require_phone = search.require_phone if search else True
+            require_website = search.require_website if search else True
+
+            saved_count = 0
             for item in deduplicated:
+                # IMPORTANT: Skip leads that don't meet requirements
+                # This ensures only valid leads are saved to database
+                phone = item.get("phone")
+                website = item.get("website")
+
+                # Skip if phone required but missing
+                if require_phone and (not phone or phone.strip() == ""):
+                    continue
+
+                # Skip if website required but missing
+                if require_website and (not website or website.strip() == ""):
+                    continue
+
+                # Stop when we reach target count (deliver EXACT amount)
+                if saved_count >= target_count:
+                    break
+
                 quality = item["_quality"]
                 validations = item.get("_validations", {})
                 alt_phones = item.get("_alternative_phones", [])
@@ -960,8 +983,8 @@ async def _execute_search_run(
                 company = Company(
                     search_id=search_id,
                     company_name=item["company_name"],
-                    website=item.get("website"),
-                    phone=item.get("phone"),
+                    website=website,
+                    phone=phone,
                     email=item.get("email"),
                     address_line=item.get("address_line"),
                     postal_code=item.get("postal_code"),
@@ -979,13 +1002,14 @@ async def _execute_search_run(
                     sources_count=item.get("_sources_count", 1),
                 )
                 session.add(company)
+                saved_count += 1
 
             # Update run status
             run = session.query(Run).filter(Run.id == run_id).first()
             if run:
                 run.status = "completed"
                 run.progress_percent = 100
-                run.found_count = len(deduplicated)
+                run.found_count = saved_count  # Count of VALID leads saved
                 run.ended_at = datetime.utcnow()
 
             session.commit()
@@ -994,7 +1018,9 @@ async def _execute_search_run(
             "search_run_completed",
             search_id=search_id,
             run_id=run_id,
-            results_count=len(deduplicated),
+            results_saved=saved_count,
+            target_count=target_count,
+            results_deduplicated=len(deduplicated),
             raw_results=len(results),
             duplicates_removed=len(enriched_results) - len(deduplicated),
         )

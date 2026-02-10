@@ -100,6 +100,15 @@ async def export_search(
         if options.min_quality > 0:
             query = query.filter(Company.quality_score >= options.min_quality)
 
+        # IMPORTANT: Respect search's require_phone setting
+        # Only export leads WITH phone number if require_phone=True
+        if search.require_phone:
+            query = query.filter(Company.phone.isnot(None), Company.phone != "")
+
+        # Respect search's require_website setting
+        if search.require_website:
+            query = query.filter(Company.website.isnot(None), Company.website != "")
+
         companies = query.order_by(Company.quality_score.desc()).all()
 
         if not companies:
