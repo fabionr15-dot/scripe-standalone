@@ -1,11 +1,12 @@
 """Authentication API v1 endpoints."""
 
+import re
 import time
 from collections import defaultdict
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.api.rate_limit import limiter
 from app.auth.credits import CreditService
@@ -67,11 +68,33 @@ def _record_failed_attempt(key: str) -> None:
 # ==================== MODELS ====================
 
 
+def validate_password_complexity(password: str) -> str:
+    """Validate password meets security requirements."""
+    if len(password) < 8:
+        raise ValueError("Password must be at least 8 characters")
+    if len(password) > 100:
+        raise ValueError("Password must be at most 100 characters")
+    if not re.search(r'[A-Z]', password):
+        raise ValueError("Password must contain at least one uppercase letter")
+    if not re.search(r'[a-z]', password):
+        raise ValueError("Password must contain at least one lowercase letter")
+    if not re.search(r'[0-9]', password):
+        raise ValueError("Password must contain at least one digit")
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;\'`~]', password):
+        raise ValueError("Password must contain at least one special character")
+    return password
+
+
 class RegisterRequest(BaseModel):
     """User registration request."""
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=100)
     name: str | None = Field(default=None, max_length=100)
+
+    @field_validator('password')
+    @classmethod
+    def check_password_complexity(cls, v):
+        return validate_password_complexity(v)
 
 
 class LoginRequest(BaseModel):
@@ -85,6 +108,11 @@ class ChangePasswordRequest(BaseModel):
     old_password: str
     new_password: str = Field(..., min_length=8, max_length=100)
 
+    @field_validator('new_password')
+    @classmethod
+    def check_password_complexity(cls, v):
+        return validate_password_complexity(v)
+
 
 class ResetPasswordRequest(BaseModel):
     """Password reset request."""
@@ -95,6 +123,11 @@ class ResetPasswordConfirm(BaseModel):
     """Password reset confirmation."""
     token: str
     new_password: str = Field(..., min_length=8, max_length=100)
+
+    @field_validator('new_password')
+    @classmethod
+    def check_password_complexity(cls, v):
+        return validate_password_complexity(v)
 
 
 class UpdateProfileRequest(BaseModel):
@@ -522,13 +555,15 @@ if app_settings.env == "development":
             ).first()
 
             if not user:
+                # SECURITY: Test user gets FREE tier with 0 credits
+                # This prevents abuse even if endpoint is accidentally exposed
                 user = UserAccount(
                     email=test_email,
-                    name="Test User",
+                    name="Test User (Dev Only)",
                     auth_provider=AuthProvider.LOCAL,
                     password_hash="test_mode_no_password",
-                    subscription_tier=SubscriptionTier.PRO,
-                    credits_balance=1000.0,
+                    subscription_tier=SubscriptionTier.FREE,  # FREE, not PRO!
+                    credits_balance=0.0,  # No free credits
                     email_verified=True,
                 )
                 session.add(user)

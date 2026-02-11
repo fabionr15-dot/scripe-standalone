@@ -262,11 +262,26 @@ async def export_list(
         companies = []
         if company_ids:
             int_ids = [int(cid) for cid in company_ids]
-            companies = (
-                session.query(Company)
-                .filter(Company.id.in_(int_ids))
+
+            # SECURITY: Get user's search IDs to verify ownership
+            # This prevents IDOR - user can only export companies from their own searches
+            user_search_ids = [
+                us.search_id for us in
+                session.query(UserSearch.search_id)
+                .filter(UserSearch.user_id == user.id)
                 .all()
-            )
+            ]
+
+            # Only fetch companies that belong to user's searches
+            if user_search_ids:
+                companies = (
+                    session.query(Company)
+                    .filter(
+                        Company.id.in_(int_ids),
+                        Company.search_id.in_(user_search_ids)
+                    )
+                    .all()
+                )
 
         fieldnames = [
             "company_name", "website", "phone", "email",

@@ -79,11 +79,28 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # ── Security validation ──────────────────────────────────────────────
-if settings.env == "production":
-    if settings.jwt_secret_key in _INSECURE_JWT_DEFAULTS or len(settings.jwt_secret_key) < 32:
+# CRITICAL: Validate JWT secret in ALL environments (not just production)
+# This prevents accidental deployment with insecure defaults
+if settings.jwt_secret_key in _INSECURE_JWT_DEFAULTS:
+    if settings.env == "production":
         print(
-            "\n❌  FATAL: JWT_SECRET_KEY is insecure or too short (min 32 chars).\n"
-            "   Set a strong random value:  openssl rand -hex 32\n",
+            "\n❌  FATAL: JWT_SECRET_KEY is using an insecure default value.\n"
+            "   Generate a secure key:  openssl rand -hex 32\n",
             file=sys.stderr,
         )
         sys.exit(1)
+    else:
+        print(
+            "\n⚠️  WARNING: JWT_SECRET_KEY is using an insecure default.\n"
+            "   This is OK for local development, but MUST be changed before deployment.\n",
+            file=sys.stderr,
+        )
+
+# Enforce minimum 64 characters in production for strong security
+if settings.env == "production" and len(settings.jwt_secret_key) < 64:
+    print(
+        "\n❌  FATAL: JWT_SECRET_KEY too short (min 64 chars in production).\n"
+        "   Generate a secure key:  openssl rand -hex 32\n",
+        file=sys.stderr,
+    )
+    sys.exit(1)

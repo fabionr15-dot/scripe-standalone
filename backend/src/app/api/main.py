@@ -6,8 +6,58 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api.rate_limit import limiter
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Add security headers to all responses.
+
+    These headers protect against common web vulnerabilities:
+    - XSS (Cross-Site Scripting)
+    - Clickjacking
+    - MIME sniffing
+    - Information disclosure
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+
+        # Prevent clickjacking - don't allow embedding in iframes
+        response.headers["X-Frame-Options"] = "DENY"
+
+        # Prevent MIME type sniffing
+        response.headers["X-Content-Type-Options"] = "nosniff"
+
+        # XSS Protection (legacy but still useful)
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+
+        # Referrer Policy - don't leak URLs to other sites
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+        # Content Security Policy - restrict resource loading
+        # Note: Adjust based on frontend requirements
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "font-src 'self'; "
+            "connect-src 'self'"
+        )
+
+        # Permissions Policy - disable unnecessary browser features
+        response.headers["Permissions-Policy"] = (
+            "accelerometer=(), "
+            "camera=(), "
+            "geolocation=(), "
+            "microphone=(), "
+            "payment=(), "
+            "usb=()"
+        )
+
+        return response
 from app.api.v1.ai import router as ai_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.dashboard import router as dashboard_router
@@ -66,8 +116,20 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # CORS middleware - always use explicit origins (never wildcard)
-    allowed_origins = settings.allowed_origins.split(",")
+    # Security Headers middleware (must be added before CORS)
+    app.add_middleware(SecurityHeadersMiddleware)
+
+    # CORS middleware - SECURITY: Never allow wildcard in production
+    allowed_origins = [
+        origin.strip()
+        for origin in settings.allowed_origins.split(",")
+        if origin.strip()
+    ]
+
+    # Block wildcard in production
+    if is_production and "*" in allowed_origins:
+        logger.error("cors_wildcard_blocked", message="Wildcard CORS not allowed in production")
+        allowed_origins = []  # Block all if misconfigured
 
     app.add_middleware(
         CORSMiddleware,
@@ -75,6 +137,7 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type", "Accept"],
+        max_age=3600,  # Cache preflight for 1 hour
     )
 
     # Rate limiting (shared instance from rate_limit module)

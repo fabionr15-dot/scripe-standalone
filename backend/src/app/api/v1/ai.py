@@ -1,9 +1,12 @@
 """AI API v1 endpoints for intelligent search assistance."""
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from app.ai.query_interpreter import QueryInterpreter, InterpretedQuery
+from app.api.rate_limit import limiter
+from app.auth.middleware import require_auth
+from app.auth.models import UserAccount
 from app.logging_config import get_logger
 from app.quality.tiers import QualityTier, get_tier_requirements, estimate_search_cost
 
@@ -106,7 +109,12 @@ class SuggestionRequest(BaseModel):
 
 
 @router.post("/interpret", response_model=InterpretResponse)
-async def interpret_query(request: InterpretRequest):
+@limiter.limit("30/minute")  # Rate limit AI queries (expensive)
+async def interpret_query(
+    request: Request,
+    body: InterpretRequest,
+    user: UserAccount = Depends(require_auth),  # Require auth
+):
     """Interpret a natural language search query.
 
     Converts queries like:
@@ -119,7 +127,7 @@ async def interpret_query(request: InterpretRequest):
     interpreter = QueryInterpreter()
 
     try:
-        result = await interpreter.interpret(request.query, use_ai=request.use_ai)
+        result = await interpreter.interpret(body.query, use_ai=body.use_ai)
 
         return InterpretResponse(
             categories=result.categories,
