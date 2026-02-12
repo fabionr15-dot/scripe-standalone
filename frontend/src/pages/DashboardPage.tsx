@@ -10,6 +10,7 @@ import {
   Building2,
   CheckCircle,
   XCircle,
+  StopCircle,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
@@ -104,6 +105,7 @@ export function DashboardPage() {
     running: { label: tc('status.running'), icon: Clock, color: 'text-blue-500' },
     completed: { label: tc('status.completed'), icon: CheckCircle, color: 'text-green-500' },
     failed: { label: tc('status.failed'), icon: XCircle, color: 'text-red-500' },
+    cancelled: { label: tc('status.cancelled'), icon: StopCircle, color: 'text-orange-500' },
   };
 
   return (
@@ -229,7 +231,7 @@ export function DashboardPage() {
           ) : (
             <div className="divide-y">
               {recentSearches.map((search) => {
-                const status = statusConfig[search.status];
+                const status = statusConfig[search.status] || { label: search.status, icon: Clock, color: 'text-gray-500' };
                 const StatusIcon = status.icon;
                 return (
                   <LocalizedLink
