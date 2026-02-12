@@ -66,3 +66,16 @@ class Database:
 
 # Global database instance
 db = Database()
+
+
+def get_db() -> Generator[Session, None, None]:
+    """FastAPI dependency for database sessions.
+
+    Yields:
+        Database session
+    """
+    session = db.SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
