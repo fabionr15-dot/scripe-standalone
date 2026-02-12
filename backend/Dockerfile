@@ -15,6 +15,10 @@ RUN pip install --no-cache-dir .
 COPY src/ ./src/
 COPY allowlist_sources.yaml .
 
+# Alembic migrations
+COPY alembic.ini .
+COPY alembic/ ./alembic/
+
 # Set PYTHONPATH so 'from app.xxx' works
 ENV PYTHONPATH=/app/src
 
