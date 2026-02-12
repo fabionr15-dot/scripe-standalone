@@ -67,11 +67,15 @@ class LocalAuthService:
 
     # ==================== USER MANAGEMENT ====================
 
+    # Base welcome credits for new users
+    BASE_WELCOME_CREDITS = 10.0
+
     def create_user(
         self,
         email: str,
         password: str,
         name: str | None = None,
+        extra_credits: float = 0.0,
     ) -> UserAccount:
         """Create a new local user.
 
@@ -79,6 +83,7 @@ class LocalAuthService:
             email: User email
             password: Plain password
             name: Optional name
+            extra_credits: Additional credits (e.g., from referral bonus)
 
         Returns:
             Created user account
@@ -95,6 +100,9 @@ class LocalAuthService:
             if existing:
                 raise ValueError("Email already registered")
 
+            # Calculate total welcome credits
+            total_credits = self.BASE_WELCOME_CREDITS + extra_credits
+
             # Create user
             user = UserAccount(
                 email=email.lower(),
@@ -102,13 +110,19 @@ class LocalAuthService:
                 auth_provider=AuthProvider.LOCAL,
                 password_hash=self.hash_password(password),
                 subscription_tier=SubscriptionTier.FREE,
-                credits_balance=10.0,  # Welcome credits
+                credits_balance=total_credits,
             )
             session.add(user)
             session.commit()
             session.refresh(user)
 
-            self.logger.info("user_created", user_id=user.id, email=email)
+            self.logger.info(
+                "user_created",
+                user_id=user.id,
+                email=email,
+                credits=total_credits,
+                referral_bonus=extra_credits,
+            )
             return user
 
     def authenticate(self, email: str, password: str) -> UserAccount | None:

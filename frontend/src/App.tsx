@@ -18,6 +18,7 @@ import { TermsPage } from './pages/TermsPage';
 import { CookiePolicyPage } from './pages/CookiePolicyPage';
 import { PaymentSuccessPage } from './pages/PaymentSuccessPage';
 import { PaymentCancelPage } from './pages/PaymentCancelPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { HreflangTags } from './i18n/HreflangTags';
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from './i18n';
@@ -96,6 +97,7 @@ export default function App() {
           <Route path="lists" element={<ListsPage />} />
           <Route path="payment/success" element={<PaymentSuccessPage />} />
           <Route path="payment/cancel" element={<PaymentCancelPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
 
         {/* Root redirect to detected language */}

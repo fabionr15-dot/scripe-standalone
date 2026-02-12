@@ -1,13 +1,19 @@
 """Credit management system for Scripe."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
+
+from sqlalchemy import and_, or_
 
 from app.auth.models import CreditTransaction, UserAccount
 from app.logging_config import get_logger
 from app.storage.db import db
 
 logger = get_logger(__name__)
+
+# Credit expiration settings
+BONUS_CREDIT_EXPIRATION_MONTHS = 12  # Bonus credits expire after 12 months
+PURCHASED_CREDITS_EXPIRE = False  # Purchased credits never expire
 
 
 class InsufficientCreditsError(Exception):
@@ -29,12 +35,12 @@ class CreditService:
     - Bonus credits
     """
 
-    # Credit packages for purchase
+    # Credit packages for purchase (prices +20% as of 2024)
     CREDIT_PACKAGES = {
-        "starter": {"credits": 100, "price_eur": 19.0, "bonus": 0},
-        "growth": {"credits": 500, "price_eur": 79.0, "bonus": 50},  # 10% bonus
-        "scale": {"credits": 1000, "price_eur": 129.0, "bonus": 150},  # 15% bonus
-        "enterprise": {"credits": 5000, "price_eur": 519.0, "bonus": 1000},  # 20% bonus
+        "starter": {"credits": 100, "price_eur": 23.0, "bonus": 0},
+        "growth": {"credits": 500, "price_eur": 95.0, "bonus": 50},  # 10% bonus
+        "scale": {"credits": 1000, "price_eur": 155.0, "bonus": 150},  # 15% bonus
+        "enterprise": {"credits": 5000, "price_eur": 623.0, "bonus": 1000},  # 20% bonus
     }
 
     def __init__(self):
@@ -79,6 +85,7 @@ class CreditService:
         operation: str,
         description: str | None = None,
         metadata: dict | None = None,
+        expires_in_months: int | None = None,
     ) -> CreditTransaction:
         """Add credits to user account.
 
@@ -88,6 +95,7 @@ class CreditService:
             operation: Operation type (purchase, refund, bonus)
             description: Optional description
             metadata: Optional metadata
+            expires_in_months: Optional expiration in months (None = never expires)
 
         Returns:
             Credit transaction record
@@ -108,6 +116,11 @@ class CreditService:
             user.credits_balance = new_balance
             user.updated_at = datetime.utcnow()
 
+            # Calculate expiration date
+            expires_at = None
+            if expires_in_months is not None:
+                expires_at = datetime.utcnow() + timedelta(days=expires_in_months * 30)
+
             # Create transaction record
             import json
             transaction = CreditTransaction(
@@ -117,6 +130,7 @@ class CreditService:
                 operation=operation,
                 description=description,
                 metadata_json=json.dumps(metadata) if metadata else None,
+                expires_at=expires_at,
             )
             session.add(transaction)
             session.commit()
@@ -128,6 +142,7 @@ class CreditService:
                 amount=amount,
                 operation=operation,
                 new_balance=new_balance,
+                expires_at=expires_at.isoformat() if expires_at else None,
             )
 
             return transaction
@@ -264,21 +279,43 @@ class CreditService:
             },
         )
 
-    def add_welcome_bonus(self, user_id: int) -> CreditTransaction:
+    def add_welcome_bonus(self, user_id: int, extra_credits: float = 0.0) -> CreditTransaction:
         """Add welcome bonus for new users.
 
         Args:
             user_id: User ID
+            extra_credits: Additional credits (e.g., from referral)
+
+        Returns:
+            Credit transaction record
+        """
+        total_bonus = 10.0 + extra_credits
+        return self.add_credits(
+            user_id=user_id,
+            amount=total_bonus,
+            operation="bonus",
+            description=f"Welcome bonus credits ({10.0} + {extra_credits} referral bonus)" if extra_credits > 0 else "Welcome bonus credits",
+            metadata={"bonus_type": "welcome", "extra_credits": extra_credits},
+            expires_in_months=BONUS_CREDIT_EXPIRATION_MONTHS,  # Bonus credits expire after 12 months
+        )
+
+    def add_referral_bonus(self, user_id: int, referred_user_id: int) -> CreditTransaction:
+        """Add referral bonus for inviting a new user.
+
+        Args:
+            user_id: Referrer's user ID
+            referred_user_id: ID of the user who was referred
 
         Returns:
             Credit transaction record
         """
         return self.add_credits(
             user_id=user_id,
-            amount=10.0,
-            operation="bonus",
-            description="Welcome bonus credits",
-            metadata={"bonus_type": "welcome"},
+            amount=20.0,
+            operation="referral_bonus",
+            description=f"Referral bonus for inviting user #{referred_user_id}",
+            metadata={"bonus_type": "referral", "referred_user_id": referred_user_id},
+            expires_in_months=BONUS_CREDIT_EXPIRATION_MONTHS,  # Bonus credits expire after 12 months
         )
 
     def get_transaction_history(
@@ -362,6 +399,125 @@ class CreditService:
                 "avg_per_search": user.credits_used_total / search_count if search_count > 0 else 0,
             }
 
+    def get_expiring_credits(self, user_id: int, days: int = 30) -> dict[str, Any]:
+        """Get credits that will expire within X days.
+
+        Args:
+            user_id: User ID
+            days: Number of days to look ahead
+
+        Returns:
+            Dict with expiring credits info
+        """
+        from sqlalchemy import func
+
+        cutoff_date = datetime.utcnow() + timedelta(days=days)
+
+        with db.session() as session:
+            # Get sum of credits expiring soon
+            expiring_amount = session.query(
+                func.sum(CreditTransaction.amount)
+            ).filter(
+                CreditTransaction.user_id == user_id,
+                CreditTransaction.amount > 0,  # Only positive transactions
+                CreditTransaction.expires_at.isnot(None),
+                CreditTransaction.expires_at <= cutoff_date,
+                CreditTransaction.expires_at > datetime.utcnow(),
+            ).scalar() or 0
+
+            # Get earliest expiration date
+            earliest_expiration = session.query(
+                func.min(CreditTransaction.expires_at)
+            ).filter(
+                CreditTransaction.user_id == user_id,
+                CreditTransaction.amount > 0,
+                CreditTransaction.expires_at.isnot(None),
+                CreditTransaction.expires_at > datetime.utcnow(),
+            ).scalar()
+
+            return {
+                "expiring_amount": float(expiring_amount),
+                "expiring_within_days": days,
+                "earliest_expiration": earliest_expiration.isoformat() if earliest_expiration else None,
+            }
+
+    def process_expired_credits(self) -> int:
+        """Process all expired credits and deduct them from user balances.
+
+        This should be run daily via a cron job.
+
+        Returns:
+            Number of users affected
+        """
+        from sqlalchemy import func
+
+        now = datetime.utcnow()
+        users_affected = 0
+
+        with db.session() as session:
+            # Find all users with expired credits that haven't been processed yet
+            # We identify expired credits by:
+            # 1. expires_at is not NULL and is in the past
+            # 2. We haven't created an "expiration" transaction for this yet
+
+            # Get users with expired, unprocessed credits
+            expired_credits = session.query(
+                CreditTransaction.user_id,
+                func.sum(CreditTransaction.amount).label("expired_amount")
+            ).filter(
+                CreditTransaction.expires_at.isnot(None),
+                CreditTransaction.expires_at <= now,
+                CreditTransaction.amount > 0,
+                CreditTransaction.operation != "expiration",
+            ).group_by(CreditTransaction.user_id).all()
+
+            for user_id, expired_amount in expired_credits:
+                if expired_amount <= 0:
+                    continue
+
+                user = session.query(UserAccount).filter(
+                    UserAccount.id == user_id
+                ).first()
+
+                if not user:
+                    continue
+
+                # Deduct expired credits from balance
+                # But don't go below zero
+                amount_to_deduct = min(expired_amount, user.credits_balance)
+                if amount_to_deduct <= 0:
+                    continue
+
+                new_balance = user.credits_balance - amount_to_deduct
+                user.credits_balance = new_balance
+                user.updated_at = now
+
+                # Create expiration transaction
+                transaction = CreditTransaction(
+                    user_id=user_id,
+                    amount=-amount_to_deduct,
+                    balance_after=new_balance,
+                    operation="expiration",
+                    description=f"Credits expired ({amount_to_deduct:.1f} credits)",
+                    expires_at=None,  # Expiration transactions don't expire
+                )
+                session.add(transaction)
+
+                # Mark original transactions as processed by updating expires_at to past
+                # (or we could add a processed flag, but this is simpler)
+
+                self.logger.info(
+                    "credits_expired",
+                    user_id=user_id,
+                    amount=amount_to_deduct,
+                    new_balance=new_balance,
+                )
+                users_affected += 1
+
+            session.commit()
+
+        return users_affected
+
     @classmethod
     def get_packages(cls) -> list[dict[str, Any]]:
         """Get available credit packages.
@@ -380,3 +536,7 @@ class CreditService:
                 "price_per_credit": info["price_eur"] / (info["credits"] + info["bonus"]),
             })
         return packages
+
+
+# Singleton instance
+credit_service = CreditService()

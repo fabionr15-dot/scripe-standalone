@@ -1,0 +1,61 @@
+{
+  "title": "Impostazioni profilo",
+  "subtitle": "Gestisci il tuo account, i dati aziendali e la fatturazione",
+  "tabs": {
+    "profile": "Profilo",
+    "company": "Azienda",
+    "address": "Indirizzo di fatturazione",
+    "invoices": "Fatture"
+  },
+  "fields": {
+    "email": "Indirizzo e-mail",
+    "emailHint": "Il tuo indirizzo e-mail non puo essere modificato",
+    "name": "Nome completo",
+    "namePlaceholder": "Inserisci il tuo nome",
+    "defaultCountry": "Paese predefinito",
+    "defaultLanguage": "Lingua",
+    "companyName": "Nome azienda",
+    "companyNamePlaceholder": "Nome della tua azienda",
+    "vatId": "Partita IVA",
+    "vatIdPlaceholder": "es. IT12345678901",
+    "vatIdHint": "Con una partita IVA UE valida, si applica il reverse charge",
+    "billingEmail": "E-mail fatturazione",
+    "billingEmailPlaceholder": "fatture@azienda.it",
+    "billingEmailHint": "Le fatture saranno inviate a questo indirizzo (opzionale)",
+    "streetAddress": "Indirizzo",
+    "streetAddressPlaceholder": "Via e numero civico",
+    "streetAddress2": "Indirizzo aggiuntivo",
+    "streetAddress2Placeholder": "Appartamento, interno, ecc. (opzionale)",
+    "postalCode": "CAP",
+    "postalCodePlaceholder": "00100",
+    "city": "Citta",
+    "cityPlaceholder": "Citta",
+    "stateProvince": "Provincia",
+    "stateProvincePlaceholder": "Provincia (opzionale)",
+    "country": "Paese"
+  },
+  "invoices": {
+    "number": "Fattura #",
+    "date": "Data",
+    "amount": "Importo",
+    "status": "Stato",
+    "actions": "Azioni",
+    "download": "Scarica",
+    "noInvoices": "Nessuna fattura ancora",
+    "noInvoicesHint": "Le tue fatture appariranno qui dopo il primo acquisto",
+    "statusValues": {
+      "draft": "Bozza",
+      "sent": "Inviata",
+      "paid": "Pagata",
+      "overdue": "Scaduta",
+      "cancelled": "Annullata"
+    }
+  },
+  "messages": {
+    "profileSaved": "Profilo salvato con successo",
+    "companySaved": "Informazioni aziendali salvate con successo",
+    "addressSaved": "Indirizzo di fatturazione salvato con successo",
+    "saveFailed": "Salvataggio fallito. Riprova.",
+    "downloadFailed": "Download fattura fallito"
+  }
+}

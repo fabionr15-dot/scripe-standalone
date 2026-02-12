@@ -12,12 +12,12 @@ stripe.api_key = settings.stripe_secret_key
 
 credit_service = CreditService()
 
-# Map package IDs to Stripe price metadata
+# Map package IDs to Stripe price metadata (prices +20% as of 2024)
 PACKAGE_METADATA = {
-    "starter": {"credits": 100, "bonus": 0, "price_cents": 1900, "name": "Starter - 100 Credits"},
-    "growth": {"credits": 500, "bonus": 50, "price_cents": 7900, "name": "Growth - 550 Credits"},
-    "scale": {"credits": 1000, "bonus": 150, "price_cents": 12900, "name": "Scale - 1,150 Credits"},
-    "enterprise": {"credits": 5000, "bonus": 1000, "price_cents": 51900, "name": "Enterprise - 6,000 Credits"},
+    "starter": {"credits": 100, "bonus": 0, "price_cents": 2300, "name": "Starter - 100 Credits"},
+    "growth": {"credits": 500, "bonus": 50, "price_cents": 9500, "name": "Growth - 550 Credits"},
+    "scale": {"credits": 1000, "bonus": 150, "price_cents": 15500, "name": "Scale - 1,150 Credits"},
+    "enterprise": {"credits": 5000, "bonus": 1000, "price_cents": 62300, "name": "Enterprise - 6,000 Credits"},
 }
 
 
@@ -97,6 +97,7 @@ def handle_checkout_completed(session: stripe.checkout.Session) -> None:
     user_id = int(metadata["user_id"])
     package_id = metadata["package_id"]
 
+    # Add credits to purchaser
     transaction = credit_service.purchase_credits(
         user_id=user_id,
         package_id=package_id,

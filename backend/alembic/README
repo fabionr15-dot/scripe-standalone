@@ -1,0 +1,50 @@
+Alembic Migrations for Scripe
+=============================
+
+This directory contains database migration scripts managed by Alembic.
+
+Commands
+--------
+
+# Show current revision
+alembic current
+
+# Show history
+alembic history
+
+# Create a new migration (auto-detect changes)
+alembic revision --autogenerate -m "description of changes"
+
+# Apply all pending migrations
+alembic upgrade head
+
+# Rollback one migration
+alembic downgrade -1
+
+# Rollback to specific revision
+alembic downgrade <revision_id>
+
+# Rollback all migrations
+alembic downgrade base
+
+
+Development Workflow
+--------------------
+
+1. Make changes to your SQLAlchemy models
+2. Run: alembic revision --autogenerate -m "description"
+3. Review the generated migration in alembic/versions/
+4. Run: alembic upgrade head
+5. Commit both the model changes and the migration file
+
+
+Production Deployment
+---------------------
+
+Migrations should be run as part of the deployment process:
+
+1. Before starting the new application version:
+   alembic upgrade head
+
+2. If something goes wrong:
+   alembic downgrade -1

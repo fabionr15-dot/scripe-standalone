@@ -1,0 +1,61 @@
+{
+  "title": "Profile Settings",
+  "subtitle": "Manage your account, company information and billing",
+  "tabs": {
+    "profile": "Profile",
+    "company": "Company",
+    "address": "Billing Address",
+    "invoices": "Invoices"
+  },
+  "fields": {
+    "email": "Email Address",
+    "emailHint": "Your email address cannot be changed",
+    "name": "Full Name",
+    "namePlaceholder": "Enter your name",
+    "defaultCountry": "Default Country",
+    "defaultLanguage": "Language",
+    "companyName": "Company Name",
+    "companyNamePlaceholder": "Your company name",
+    "vatId": "VAT ID",
+    "vatIdPlaceholder": "e.g. DE123456789",
+    "vatIdHint": "If you have a valid EU VAT ID, reverse charge applies",
+    "billingEmail": "Billing Email",
+    "billingEmailPlaceholder": "invoices@company.com",
+    "billingEmailHint": "Invoices will be sent to this address (optional)",
+    "streetAddress": "Street Address",
+    "streetAddressPlaceholder": "Street and house number",
+    "streetAddress2": "Address Line 2",
+    "streetAddress2Placeholder": "Apartment, suite, unit, etc. (optional)",
+    "postalCode": "Postal Code",
+    "postalCodePlaceholder": "12345",
+    "city": "City",
+    "cityPlaceholder": "City",
+    "stateProvince": "State / Province",
+    "stateProvincePlaceholder": "State or province (optional)",
+    "country": "Country"
+  },
+  "invoices": {
+    "number": "Invoice #",
+    "date": "Date",
+    "amount": "Amount",
+    "status": "Status",
+    "actions": "Actions",
+    "download": "Download",
+    "noInvoices": "No invoices yet",
+    "noInvoicesHint": "Your invoices will appear here after your first purchase",
+    "statusValues": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "paid": "Paid",
+      "overdue": "Overdue",
+      "cancelled": "Cancelled"
+    }
+  },
+  "messages": {
+    "profileSaved": "Profile saved successfully",
+    "companySaved": "Company information saved successfully",
+    "addressSaved": "Billing address saved successfully",
+    "saveFailed": "Failed to save. Please try again.",
+    "downloadFailed": "Failed to download invoice"
+  }
+}

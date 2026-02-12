@@ -90,6 +90,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=100)
     name: str | None = Field(default=None, max_length=100)
+    referral_code: str | None = Field(default=None, max_length=20)  # Optional referral code
 
     @field_validator('password')
     @classmethod
@@ -135,6 +136,10 @@ class UpdateProfileRequest(BaseModel):
     name: str | None = None
     default_country: str | None = Field(default=None, min_length=2, max_length=2)
     default_language: str | None = Field(default=None, min_length=2, max_length=5)
+    # Company / Billing fields
+    company_name: str | None = Field(default=None, max_length=255)
+    vat_id: str | None = Field(default=None, max_length=50)  # USt-IdNr.
+    billing_email: str | None = Field(default=None, max_length=255)
 
 
 class UserResponse(BaseModel):
@@ -149,6 +154,11 @@ class UserResponse(BaseModel):
     is_active: bool
     default_country: str
     default_language: str
+    # Company / Billing fields
+    company_name: str | None = None
+    vat_id: str | None = None
+    billing_email: str | None = None
+    tax_exempt: bool = False
 
 
 # ==================== ENDPOINTS ====================
@@ -160,19 +170,66 @@ async def register(request: Request, body: RegisterRequest):
     """Register a new user account.
 
     Creates a local (email/password) account with welcome credits.
+    If referral_code is provided, gives bonus credits to both users.
+    Sends verification and welcome emails.
     """
+    from app.email.service import email_service
+    from app.referral.service import referral_service
+
     try:
-        # Create user
+        # Validate referral code if provided
+        referrer_id = None
+        referral_code_obj = None
+        if body.referral_code:
+            referral_code_obj = referral_service.validate_code(body.referral_code)
+            if referral_code_obj:
+                referrer_id = referral_code_obj.user_id
+                logger.info(
+                    "registration_with_referral",
+                    referral_code=body.referral_code,
+                    referrer_id=referrer_id,
+                )
+
+        # Create user with extra credits if referred (20 instead of 10)
+        extra_credits = 10.0 if referrer_id else 0.0  # Referral bonus
         user = auth_service.create_user(
             email=body.email,
             password=body.password,
             name=body.name,
+            extra_credits=extra_credits,
         )
+
+        # Process referral if applicable
+        if referrer_id and referral_code_obj:
+            referral_service.process_signup(
+                referrer_id=referrer_id,
+                referred_id=user.id,
+                referral_code_id=referral_code_obj.id,
+            )
 
         # Create access token
         token = auth_service.create_access_token(user)
 
-        logger.info("user_registered", user_id=user.id, email=body.email)
+        logger.info(
+            "user_registered",
+            user_id=user.id,
+            email=body.email,
+            referred_by=referrer_id,
+        )
+
+        # Send verification email
+        verification_token = auth_service.generate_verification_token(user.id)
+        await email_service.send_verification_email(
+            to_email=user.email,
+            user_name=user.name,
+            verification_token=verification_token,
+        )
+
+        # Send welcome email (mentions referral bonus if applicable)
+        await email_service.send_welcome_email(
+            to_email=user.email,
+            user_name=user.name,
+        )
 
         return TokenResponse(
             access_token=token,
@@ -300,6 +357,11 @@ async def get_current_user_info(user: UserAccount = Depends(require_auth)):
         is_active=user.is_active,
         default_country=user.default_country,
         default_language=user.default_language,
+        # Company / Billing fields
+        company_name=user.company_name,
+        vat_id=user.vat_id,
+        billing_email=user.billing_email,
+        tax_exempt=user.tax_exempt,
     )
 
 
@@ -322,6 +384,15 @@ async def update_profile(
             db_user.default_country = request.default_country.upper()
         if request.default_language is not None:
             db_user.default_language = request.default_language
+        # Company / Billing fields
+        if request.company_name is not None:
+            db_user.company_name = request.company_name
+        if request.vat_id is not None:
+            db_user.vat_id = request.vat_id
+            # Wenn VAT-ID gesetzt ist, tax_exempt aktivieren (EU Reverse Charge)
+            db_user.tax_exempt = bool(request.vat_id.strip())
+        if request.billing_email is not None:
+            db_user.billing_email = request.billing_email
 
         session.commit()
         session.refresh(db_user)
@@ -337,6 +408,11 @@ async def update_profile(
             is_active=db_user.is_active,
             default_country=db_user.default_country,
             default_language=db_user.default_language,
+            # Company / Billing fields
+            company_name=db_user.company_name,
+            vat_id=db_user.vat_id,
+            billing_email=db_user.billing_email,
+            tax_exempt=db_user.tax_exempt,
         )
 
 
@@ -372,13 +448,22 @@ async def change_password(
 async def forgot_password(request: Request, body: ResetPasswordRequest):
     """Request password reset email.
 
-    Note: Always returns success to prevent email enumeration.
+    Always returns success to prevent email enumeration.
     """
-    token = auth_service.generate_reset_token(body.email)
+    from app.email.service import email_service
 
+    token = auth_service.generate_reset_token(body.email)
     if token:
-        # TODO: Send email with reset link
-        # In production: send_reset_email(body.email, token)
+        # Get user name for email personalization
+        user = auth_service.get_user_by_email(body.email)
+        user_name = user.name if user else None
+
+        # Send password reset email
+        await email_service.send_password_reset_email(
+            to_email=body.email,
+            user_name=user_name,
+            reset_token=token,
+        )
         logger.info("password_reset_requested", email=body.email)
 
     # Always return success to prevent email enumeration
@@ -389,16 +474,23 @@ async def forgot_password(request: Request, body: ResetPasswordRequest):
 
 
 @router.post("/reset-password")
-async def reset_password(request: ResetPasswordConfirm):
+async def reset_password(body: ResetPasswordConfirm):
     """Reset password with token."""
-    success = auth_service.reset_password(request.token, request.new_password)
+    # Validate new password complexity
+    try:
+        validate_password_complexity(body.new_password)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
+    success = auth_service.reset_password(body.token, body.new_password)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired reset token",
         )
-
     return {"success": True, "message": "Password reset successfully"}
 
 
@@ -417,15 +509,22 @@ async def verify_email(token: str):
 
 
 @router.post("/resend-verification")
-async def resend_verification(user: UserAccount = Depends(require_auth)):
+@limiter.limit("3/minute")
+async def resend_verification(request: Request, user: UserAccount = Depends(require_auth)):
     """Resend email verification."""
+    from app.email.service import email_service
+
     if user.email_verified:
         return {"success": True, "message": "Email already verified"}
 
     token = auth_service.generate_verification_token(user.id)
 
-    # TODO: Send verification email
-    # In production: send_verification_email(user.email, token)
+    # Send verification email
+    await email_service.send_verification_email(
+        to_email=user.email,
+        user_name=user.name,
+        verification_token=token,
+    )
 
     return {"success": True, "message": "Verification email sent"}
 

@@ -40,6 +40,8 @@ dependencies = [
     "slowapi>=0.1.9",
     # Payments
     "stripe>=7.0.0",
+    # Migrations
+    "alembic>=1.13.0",
 ]
 
 [project.optional-dependencies]

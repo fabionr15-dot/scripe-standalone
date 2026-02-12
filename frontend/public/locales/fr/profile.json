@@ -1,0 +1,61 @@
+{
+  "title": "Parametres du profil",
+  "subtitle": "Gerez votre compte, vos informations d'entreprise et la facturation",
+  "tabs": {
+    "profile": "Profil",
+    "company": "Entreprise",
+    "address": "Adresse de facturation",
+    "invoices": "Factures"
+  },
+  "fields": {
+    "email": "Adresse e-mail",
+    "emailHint": "Votre adresse e-mail ne peut pas etre modifiee",
+    "name": "Nom complet",
+    "namePlaceholder": "Entrez votre nom",
+    "defaultCountry": "Pays par defaut",
+    "defaultLanguage": "Langue",
+    "companyName": "Nom de l'entreprise",
+    "companyNamePlaceholder": "Nom de votre entreprise",
+    "vatId": "Numero de TVA",
+    "vatIdPlaceholder": "ex. FR12345678901",
+    "vatIdHint": "Avec un numero de TVA UE valide, l'autoliquidation s'applique",
+    "billingEmail": "E-mail de facturation",
+    "billingEmailPlaceholder": "factures@entreprise.com",
+    "billingEmailHint": "Les factures seront envoyees a cette adresse (optionnel)",
+    "streetAddress": "Adresse",
+    "streetAddressPlaceholder": "Rue et numero",
+    "streetAddress2": "Complement d'adresse",
+    "streetAddress2Placeholder": "Appartement, batiment, etc. (optionnel)",
+    "postalCode": "Code postal",
+    "postalCodePlaceholder": "75001",
+    "city": "Ville",
+    "cityPlaceholder": "Ville",
+    "stateProvince": "Region",
+    "stateProvincePlaceholder": "Region (optionnel)",
+    "country": "Pays"
+  },
+  "invoices": {
+    "number": "Facture #",
+    "date": "Date",
+    "amount": "Montant",
+    "status": "Statut",
+    "actions": "Actions",
+    "download": "Telecharger",
+    "noInvoices": "Pas encore de factures",
+    "noInvoicesHint": "Vos factures apparaitront ici apres votre premier achat",
+    "statusValues": {
+      "draft": "Brouillon",
+      "sent": "Envoyee",
+      "paid": "Payee",
+      "overdue": "En retard",
+      "cancelled": "Annulee"
+    }
+  },
+  "messages": {
+    "profileSaved": "Profil enregistre avec succes",
+    "companySaved": "Informations entreprise enregistrees avec succes",
+    "addressSaved": "Adresse de facturation enregistree avec succes",
+    "saveFailed": "Echec de l'enregistrement. Veuillez reessayer.",
+    "downloadFailed": "Echec du telechargement de la facture"
+  }
+}

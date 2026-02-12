@@ -8,6 +8,7 @@ import {
   FolderOpen,
   LogOut,
   User,
+  Settings,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
@@ -26,6 +27,7 @@ export function DashboardLayout() {
     { href: '/searches', label: t('sidebar.searches'), icon: Search },
     { href: '/searches/new', label: t('sidebar.newSearch'), icon: PlusCircle },
     { href: '/lists', label: t('sidebar.lists'), icon: FolderOpen },
+    { href: '/profile', label: t('sidebar.profile'), icon: Settings },
   ];
 
   return (

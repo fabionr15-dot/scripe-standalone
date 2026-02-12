@@ -14,6 +14,13 @@ interface User {
   name: string | null;
   subscription_tier: string;
   credits_balance: number;
+  default_country?: string;
+  default_language?: string;
+  // Company / Billing fields
+  company_name?: string | null;
+  vat_id?: string | null;
+  billing_email?: string | null;
+  tax_exempt?: boolean;
 }
 
 interface AuthContextType {

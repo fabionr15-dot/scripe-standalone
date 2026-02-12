@@ -57,6 +57,12 @@ class UserAccount(Base):
     default_country = Column(String(2), default="IT")
     default_language = Column(String(5), default="it")
 
+    # Company / Billing Info
+    company_name = Column(String(255), nullable=True)
+    vat_id = Column(String(50), nullable=True)  # USt-IdNr. / VAT ID
+    tax_exempt = Column(Boolean, default=False)
+    billing_email = Column(String(255), nullable=True)  # Separate billing email
+
     # Status
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
@@ -70,6 +76,8 @@ class UserAccount(Base):
     credit_transactions = relationship("CreditTransaction", back_populates="user")
     searches = relationship("UserSearch", back_populates="user")
     saved_lists = relationship("SavedList", back_populates="user")
+    billing_addresses = relationship("BillingAddress", back_populates="user")
+    invoices = relationship("Invoice", back_populates="user")
 
     def __repr__(self):
         return f"<UserAccount(id={self.id}, email={self.email}, provider={self.auth_provider})>"
@@ -106,7 +114,10 @@ class CreditTransaction(Base):
     description = Column(String(500), nullable=True)
     metadata_json = Column(Text, nullable=True)
 
-    # Timestamp
+    # Expiration (NULL = never expires, e.g. purchased credits)
+    expires_at = Column(DateTime, nullable=True, index=True)
+
+    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -132,6 +143,24 @@ class UserSearch(Base):
 
     # Relationships
     user = relationship("UserAccount", back_populates="searches")
+
+
+class ProcessedWebhookEvent(Base):
+    """Tracks processed webhook events for idempotency.
+
+    Prevents duplicate processing of webhook events (e.g., Stripe payments).
+    Stored in database to survive server restarts and work across multiple processes.
+    """
+    __tablename__ = "processed_webhook_events"
+
+    id = Column(Integer, primary_key=True)
+    event_id = Column(String(255), unique=True, nullable=False, index=True)
+    event_type = Column(String(100), nullable=False)  # e.g., "checkout.session.completed"
+    source = Column(String(50), nullable=False)  # e.g., "stripe"
+    processed_at = Column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<ProcessedWebhookEvent(id={self.event_id}, type={self.event_type})>"
 
 
 class SavedList(Base):
@@ -184,6 +213,12 @@ class User(BaseModel):
     credits_balance: float
     is_active: bool
     created_at: datetime
+
+    # Company / Billing Info
+    company_name: str | None = None
+    vat_id: str | None = None
+    tax_exempt: bool = False
+    billing_email: str | None = None
 
     class Config:
         from_attributes = True

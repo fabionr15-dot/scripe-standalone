@@ -61,22 +61,22 @@ class QualityTier(str, Enum):
 class SearchCreateV1(BaseModel):
     """Create search request."""
     name: str = Field(..., min_length=1, max_length=200)
-    query: str = Field(..., min_length=2, description="Search query (category, keywords)")
+    query: str = Field(..., min_length=2, max_length=500, description="Search query (category, keywords)")
     country: str = Field(default="IT", min_length=2, max_length=2)
-    countries: list[str] | None = Field(default=None, description="All countries for multi-country search")
-    regions: list[str] | None = Field(default=None, description="Regions to search in")
-    cities: list[str] | None = Field(default=None, description="Cities to search in")
-    keywords_include: list[str] | None = Field(default=None, description="Must include these keywords")
-    keywords_exclude: list[str] | None = Field(default=None, description="Must not include these keywords")
+    countries: list[str] | None = Field(default=None, max_length=20, description="All countries for multi-country search")
+    regions: list[str] | None = Field(default=None, max_length=50, description="Regions to search in")
+    cities: list[str] | None = Field(default=None, max_length=100, description="Cities to search in")
+    keywords_include: list[str] | None = Field(default=None, max_length=20, description="Must include these keywords")
+    keywords_exclude: list[str] | None = Field(default=None, max_length=20, description="Must not include these keywords")
     target_count: int = Field(default=100, ge=1, le=10000)
     quality_tier: QualityTier = Field(default=QualityTier.STANDARD)
     campaign_id: int | None = Field(default=None, description="Optional campaign to link to")
 
     # Advanced filters
-    technologies: list[str] | None = Field(default=None, description="Required technologies (SAP, Salesforce, etc.)")
-    company_size: str | None = Field(default=None, description="Company size: small, medium, large, enterprise")
-    employee_count_min: int | None = Field(default=None, description="Minimum employee count")
-    employee_count_max: int | None = Field(default=None, description="Maximum employee count")
+    technologies: list[str] | None = Field(default=None, max_length=20, description="Required technologies (SAP, Salesforce, etc.)")
+    company_size: str | None = Field(default=None, max_length=20, description="Company size: small, medium, large, enterprise")
+    employee_count_min: int | None = Field(default=None, ge=0, le=1000000, description="Minimum employee count")
+    employee_count_max: int | None = Field(default=None, ge=0, le=1000000, description="Maximum employee count")
 
     # Validation options
     require_phone: bool = True

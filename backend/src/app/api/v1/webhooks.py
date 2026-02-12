@@ -1,15 +1,71 @@
 """Webhook endpoints for external services."""
 
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter, HTTPException, Request, status
 
+from app.auth.models import ProcessedWebhookEvent
 from app.logging_config import get_logger
+from app.storage.db import db
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
-# Track processed webhook events to prevent duplicate credit allocation
-_processed_events: set[str] = set()
+
+def is_event_processed(event_id: str, source: str) -> bool:
+    """Check if a webhook event has already been processed.
+
+    Args:
+        event_id: The unique event ID from the webhook source
+        source: The webhook source (e.g., "stripe")
+
+    Returns:
+        True if already processed, False otherwise
+    """
+    with db.session() as session:
+        existing = session.query(ProcessedWebhookEvent).filter(
+            ProcessedWebhookEvent.event_id == event_id,
+            ProcessedWebhookEvent.source == source,
+        ).first()
+        return existing is not None
+
+
+def mark_event_processed(event_id: str, event_type: str, source: str) -> None:
+    """Mark a webhook event as processed.
+
+    Args:
+        event_id: The unique event ID from the webhook source
+        event_type: The type of event (e.g., "checkout.session.completed")
+        source: The webhook source (e.g., "stripe")
+    """
+    with db.session() as session:
+        event = ProcessedWebhookEvent(
+            event_id=event_id,
+            event_type=event_type,
+            source=source,
+            processed_at=datetime.utcnow(),
+        )
+        session.add(event)
+        session.commit()
+
+
+def cleanup_old_events(days: int = 30) -> int:
+    """Remove webhook events older than specified days.
+
+    Args:
+        days: Number of days to keep events
+
+    Returns:
+        Number of deleted events
+    """
+    cutoff = datetime.utcnow() - timedelta(days=days)
+    with db.session() as session:
+        deleted = session.query(ProcessedWebhookEvent).filter(
+            ProcessedWebhookEvent.processed_at < cutoff
+        ).delete()
+        session.commit()
+        return deleted
 
 
 @router.post("/stripe")
@@ -17,6 +73,7 @@ async def stripe_webhook(request: Request):
     """Handle Stripe webhook events.
 
     Verifies the webhook signature and processes payment events.
+    Uses database-backed idempotency to prevent duplicate processing.
     """
     from app.settings import settings
     from app.payments.stripe_service import (
@@ -42,28 +99,29 @@ async def stripe_webhook(request: Request):
             detail=str(e),
         )
 
-    # Handle the event — with idempotency check
+    # Handle the event — with database-backed idempotency check
     event_id = event.get("id", "")
-    if event["type"] == "checkout.session.completed":
-        if event_id in _processed_events:
+    event_type = event.get("type", "")
+
+    if event_type == "checkout.session.completed":
+        # Check for duplicate processing
+        if is_event_processed(event_id, "stripe"):
             logger.info("stripe_webhook_duplicate", event_id=event_id)
             return {"received": True, "duplicate": True}
 
-        session = event["data"]["object"]
+        session_data = event["data"]["object"]
         try:
-            handle_checkout_completed(session)
-            _processed_events.add(event_id)
-            # Keep set bounded (last 10k events)
-            if len(_processed_events) > 10000:
-                _processed_events.clear()
-            logger.info("stripe_checkout_completed", session_id=session["id"])
+            handle_checkout_completed(session_data)
+            # Mark as processed AFTER successful handling
+            mark_event_processed(event_id, event_type, "stripe")
+            logger.info("stripe_checkout_completed", session_id=session_data["id"])
         except Exception as e:
-            logger.error("stripe_checkout_error", error=str(e), session_id=session["id"])
+            logger.error("stripe_checkout_error", error=str(e), session_id=session_data["id"])
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Error processing payment",
             )
     else:
-        logger.info("stripe_webhook_unhandled", event_type=event["type"])
+        logger.info("stripe_webhook_unhandled", event_type=event_type)
 
     return {"received": True}

@@ -40,6 +40,26 @@ class Settings(BaseSettings):
     stripe_publishable_key: str | None = None
     stripe_webhook_secret: str | None = None
 
+    # Email (SendGrid)
+    sendgrid_api_key: str | None = None
+    sendgrid_from_email: str = "noreply@scripe.io"
+    sendgrid_from_name: str = "Scripe"
+
+    # Frontend URL (for email links)
+    frontend_url: str | None = None
+
+    # Hunter.io (Email Finding)
+    hunter_api_key: str | None = None
+    hunter_enabled: bool = False  # Feature flag
+
+    # HubSpot CRM Integration
+    hubspot_client_id: str | None = None
+    hubspot_client_secret: str | None = None
+    hubspot_redirect_uri: str | None = None
+
+    # BuiltWith (Tech Stack Detection) - Optional
+    builtwith_api_key: str | None = None
+
     # Proxy Configuration
     proxy_urls: list[str] = Field(default_factory=list)  # List of proxy URLs
     proxy_rotation_interval: float = 5.0  # Seconds between proxy switches

@@ -58,13 +58,20 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         )
 
         return response
+
+
 from app.api.v1.ai import router as ai_router
+from app.api.v1.api_keys import router as api_keys_router
 from app.api.v1.auth import router as auth_router
+from app.api.v1.billing import router as billing_router
 from app.api.v1.dashboard import router as dashboard_router
 from app.api.v1.export import router as export_router
+from app.api.v1.integrations import router as integrations_router
 from app.api.v1.lists import router as lists_router
+from app.api.v1.referral import router as referral_router
 from app.api.v1.searches import router as searches_v1_router
 from app.api.v1.sources import router as sources_router
+from app.api.v1.teams import router as teams_router
 from app.api.v1.webhooks import router as webhooks_router
 from app.logging_config import get_logger
 from app.settings import settings
@@ -159,6 +166,11 @@ def create_app() -> FastAPI:
     app.include_router(webhooks_router, prefix="/api/v1")
     app.include_router(dashboard_router, prefix="/api/v1")
     app.include_router(lists_router, prefix="/api/v1")
+    app.include_router(referral_router, prefix="/api/v1")
+    app.include_router(integrations_router, prefix="/api/v1")
+    app.include_router(teams_router, prefix="/api/v1")
+    app.include_router(api_keys_router, prefix="/api/v1")
+    app.include_router(billing_router, prefix="/api/v1")
 
     # Health check endpoint
     @app.get("/health")

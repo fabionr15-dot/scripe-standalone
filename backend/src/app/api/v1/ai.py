@@ -75,12 +75,12 @@ class TierInfoResponse(BaseModel):
 class EstimateRequest(BaseModel):
     """Request for search cost estimate."""
 
-    query: str
-    country: str = "IT"
-    regions: list[str] | None = None
-    cities: list[str] | None = None
+    query: str = Field(..., min_length=1, max_length=500)
+    country: str = Field(default="IT", min_length=2, max_length=2)
+    regions: list[str] | None = Field(default=None, max_length=50)
+    cities: list[str] | None = Field(default=None, max_length=100)
     target_count: int = Field(default=100, ge=0, le=10000)
-    quality_tier: str = "standard"
+    quality_tier: str = Field(default="standard", max_length=20)
 
 
 class EstimateResponse(BaseModel):

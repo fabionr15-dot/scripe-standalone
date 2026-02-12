@@ -1,0 +1,61 @@
+{
+  "title": "Profileinstellungen",
+  "subtitle": "Verwalten Sie Ihr Konto, Firmendaten und Rechnungen",
+  "tabs": {
+    "profile": "Profil",
+    "company": "Firma",
+    "address": "Rechnungsadresse",
+    "invoices": "Rechnungen"
+  },
+  "fields": {
+    "email": "E-Mail-Adresse",
+    "emailHint": "Ihre E-Mail-Adresse kann nicht geaendert werden",
+    "name": "Vollstaendiger Name",
+    "namePlaceholder": "Geben Sie Ihren Namen ein",
+    "defaultCountry": "Standardland",
+    "defaultLanguage": "Sprache",
+    "companyName": "Firmenname",
+    "companyNamePlaceholder": "Ihr Firmenname",
+    "vatId": "USt-IdNr.",
+    "vatIdPlaceholder": "z.B. DE123456789",
+    "vatIdHint": "Bei gueltiger EU-USt-IdNr. gilt das Reverse-Charge-Verfahren",
+    "billingEmail": "Rechnungs-E-Mail",
+    "billingEmailPlaceholder": "rechnung@firma.de",
+    "billingEmailHint": "Rechnungen werden an diese Adresse gesendet (optional)",
+    "streetAddress": "Strasse",
+    "streetAddressPlaceholder": "Strasse und Hausnummer",
+    "streetAddress2": "Adresszusatz",
+    "streetAddress2Placeholder": "Wohnung, Etage, etc. (optional)",
+    "postalCode": "Postleitzahl",
+    "postalCodePlaceholder": "12345",
+    "city": "Stadt",
+    "cityPlaceholder": "Stadt",
+    "stateProvince": "Bundesland",
+    "stateProvincePlaceholder": "Bundesland (optional)",
+    "country": "Land"
+  },
+  "invoices": {
+    "number": "Rechnung #",
+    "date": "Datum",
+    "amount": "Betrag",
+    "status": "Status",
+    "actions": "Aktionen",
+    "download": "Herunterladen",
+    "noInvoices": "Noch keine Rechnungen",
+    "noInvoicesHint": "Ihre Rechnungen erscheinen hier nach Ihrem ersten Kauf",
+    "statusValues": {
+      "draft": "Entwurf",
+      "sent": "Gesendet",
+      "paid": "Bezahlt",
+      "overdue": "Ueberfaellig",
+      "cancelled": "Storniert"
+    }
+  },
+  "messages": {
+    "profileSaved": "Profil erfolgreich gespeichert",
+    "companySaved": "Firmendaten erfolgreich gespeichert",
+    "addressSaved": "Rechnungsadresse erfolgreich gespeichert",
+    "saveFailed": "Speichern fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "downloadFailed": "Rechnung konnte nicht heruntergeladen werden"
+  }
+}

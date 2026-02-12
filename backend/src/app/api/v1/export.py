@@ -2,6 +2,7 @@
 
 import csv
 import io
+import re
 from datetime import datetime
 from enum import Enum
 from typing import Any
@@ -18,6 +19,75 @@ from app.storage.db import db
 from app.storage.models import Company, Search
 
 logger = get_logger(__name__)
+
+
+def sanitize_excel_sheet_name(name: str, max_length: int = 31) -> str:
+    """Sanitize a string to be used as an Excel sheet name.
+
+    Excel sheet names have restrictions:
+    - Maximum 31 characters
+    - Cannot contain: \\ / * [ ] : ?
+    - Cannot start or end with apostrophe
+    - Cannot be blank
+
+    Also prevents formula injection by escaping leading special characters.
+
+    Args:
+        name: The proposed sheet name
+        max_length: Maximum length (default 31, Excel's limit)
+
+    Returns:
+        Sanitized sheet name safe for use in Excel
+    """
+    if not name:
+        return "Sheet"
+
+    # Remove or replace invalid characters
+    # These characters are not allowed in Excel sheet names
+    invalid_chars = r'[\\/*\[\]:?]'
+    sanitized = re.sub(invalid_chars, '_', name)
+
+    # Prevent formula injection - prefix with apostrophe if starts with formula chars
+    formula_chars = ('=', '+', '-', '@', '\t', '\r', '\n')
+    if sanitized and sanitized[0] in formula_chars:
+        sanitized = "'" + sanitized
+
+    # Remove leading/trailing apostrophes (Excel restriction)
+    sanitized = sanitized.strip("'")
+
+    # Truncate to max length
+    if len(sanitized) > max_length:
+        sanitized = sanitized[:max_length]
+
+    # Ensure not blank
+    if not sanitized:
+        return "Sheet"
+
+    return sanitized
+
+
+def sanitize_excel_cell(value: Any) -> Any:
+    """Sanitize a cell value to prevent formula injection.
+
+    Excel formula injection can occur when cell values start with:
+    =, +, -, @, tab, or carriage return
+
+    Args:
+        value: The cell value to sanitize
+
+    Returns:
+        Sanitized value safe for Excel cells
+    """
+    if value is None:
+        return value
+
+    if isinstance(value, str):
+        # Prevent formula injection by prefixing with apostrophe
+        formula_chars = ('=', '+', '-', '@', '\t', '\r', '\n')
+        if value and value[0] in formula_chars:
+            return "'" + value
+
+    return value
 
 router = APIRouter(prefix="/searches", tags=["export"])
 
@@ -238,12 +308,14 @@ def _export_excel(search: Search, companies: list[Company], columns: list[str]) 
         cell.alignment = header_alignment
         cell.border = border
 
-    # Write data rows
+    # Write data rows (with formula injection protection)
     for row_idx, company in enumerate(companies, 2):
         row_data = _company_to_dict(company, columns)
         for col_idx, column in enumerate(columns, 1):
             value = row_data.get(column, "")
-            cell = ws.cell(row=row_idx, column=col_idx, value=value)
+            # Sanitize string values to prevent formula injection
+            sanitized_value = sanitize_excel_cell(value)
+            cell = ws.cell(row=row_idx, column=col_idx, value=sanitized_value)
             cell.border = border
 
             # Format score columns as percentage
@@ -269,7 +341,8 @@ def _export_excel(search: Search, companies: list[Company], columns: list[str]) 
     # Add summary sheet
     ws_summary = wb.create_sheet(title="Summary")
     ws_summary["A1"] = "Search Name"
-    ws_summary["B1"] = search.name
+    # Sanitize search name to prevent formula injection in summary
+    ws_summary["B1"] = sanitize_excel_cell(search.name)
     ws_summary["A2"] = "Export Date"
     ws_summary["B2"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     ws_summary["A3"] = "Total Results"
